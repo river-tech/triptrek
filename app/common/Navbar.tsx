@@ -1,0 +1,136 @@
+"use client";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
+import { useImmer } from "use-immer";
+
+export default function Navbar() {
+  const navItems = [
+    { name: "Trang chủ", href: "#home" },
+    { name: "Giới thiệu", href: "#about" },
+    { name: "Du lịch", href: "#travel" },
+    { name: "Ẩm thực", href: "#food" },
+    { name: "Liên hệ", href: "#footer" },
+  ];
+
+  const [state, updateState] = useImmer({
+    activeItem: navItems[0].href,
+    isVisible: true,
+    lastScrollY: 0
+  });
+
+  const navigateItems = [
+    { name: "Trang chủ", href: "/" },
+    { name: "Du lịch", href: "/travel" },
+    { name: "Ẩm thực", href: "/food" },
+  ]
+
+  const pathname = usePathname();
+  console.log("pathname", pathname);
+  const isNotHome = pathname !== "/";
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Ẩn navbar khi cuộn xuống, hiện khi cuộn lên
+      if (currentScrollY > state.lastScrollY && currentScrollY > 100) {
+        updateState(draft => {
+          draft.isVisible = false;
+        });
+      } else {
+        updateState(draft => {
+          draft.isVisible = true;
+        });
+      }
+      
+      updateState(draft => {
+        draft.lastScrollY = currentScrollY;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [state.lastScrollY, updateState]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            updateState(draft => {
+              draft.activeItem = `#${entry.target.id}`;
+            });
+          }
+        });
+      },
+      { threshold: 0.6 } // 60% section visible mới active
+    );
+
+    navItems.forEach((item) => {
+      const section = document.querySelector(item.href);
+      if (section) observer.observe(section);
+    });
+
+    return () => observer.disconnect();
+  }, [updateState]);
+
+  return (
+    <>
+    {
+      isNotHome ? (
+        <nav 
+        className={`fixed left-0 w-full bg-[#33333380] backdrop-blur-sm text-white shadow-md z-50 transition-transform duration-300 ease-in-out ${
+          state.isVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <div className="flex flex-col items-center justify-center w-[100px] h-16">
+              <div className="w-full h-0.5 bg-white"></div>
+              <span className="text-xl py-1 font-extrabold">TripTrek</span>
+              <div className="w-full h-0.5 bg-white"></div>
+            </div>
+  
+            {/* Menu items */}
+            <div className="hidden md:flex space-x-8 text-lg font-medium">
+              {navItems.map((item) => (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className={`hover:text-sky-400 transition-colors duration-200 ${
+                    state.activeItem === item.href ? "text-sky-400" : ""
+                  }`}
+                >
+                  {item.name}
+                </a>
+              ))}
+            </div>
+  
+            {/* User profile */}
+            <div className="flex items-center space-x-3">
+              <Image
+                src="/avatar.png"
+                alt="User Avatar"
+                width={40}
+                height={40}
+                className="rounded-full border-2 border-sky-400"
+              />
+              <span className="font-semibold">Username</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+      ):
+      (
+        <nav>
+          
+        </nav>
+      )
+    }
+    
+    </>
+   
+  );
+}
