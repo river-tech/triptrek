@@ -54,7 +54,7 @@ export default function Travel() {
                bg-sky-400 transition-all duration-500 ease-out
                hover:bg-[length:200%_100%] bg-[length:100%_100%] bg-gradient-to-r from-sky-500 via-sky-400 to-sky-600"
           >
-            <span className="relative z-10">Xem thêm →</span>
+            <span className="relative z-10">Khám phá hành trình mơ ước của bạn →</span>
             {/* Overlay chạy hiệu ứng sáng */}
             <span className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></span>
           </Link>

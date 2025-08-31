@@ -9,6 +9,8 @@ import "swiper/css/navigation";
 import FamouTour from '@/app/common/FamousTour';
 import FamousDestination from '@/app/common/FamousDestination';
 import { CardItem } from '@/app/common/FamousTour';
+import BackButton from '@/app/common/BackButton';
+
 
 
 const page = () => {
@@ -22,10 +24,11 @@ const page = () => {
     }
     return chunks
   }
-  
+
 
   return (
     <div className='bg-white'>
+      <BackButton />
     <HeroSection backgroundUrl='/mountain.jpg' heightClass='h-[700px]'>
       <div className="text-center mt-10">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">Tìm chuyến đi của bạn</h1>

@@ -3,6 +3,9 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useImmer } from "use-immer";
+import Link from "next/link";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBuilding, faTicket, faUser } from "@fortawesome/free-solid-svg-icons";
 
 export default function Navbar() {
   const navItems = [
@@ -18,12 +21,6 @@ export default function Navbar() {
     isVisible: true,
     lastScrollY: 0
   });
-
-  const navigateItems = [
-    { name: "Trang chủ", href: "/" },
-    { name: "Du lịch", href: "/travel" },
-    { name: "Ẩm thực", href: "/food" },
-  ]
 
   const pathname = usePathname();
   console.log("pathname", pathname);
@@ -76,61 +73,60 @@ export default function Navbar() {
   }, [updateState]);
 
   return (
-    <>
-    {
-      isNotHome ? (
         <nav 
-        className={`fixed left-0 w-full bg-[#33333380] backdrop-blur-sm text-white shadow-md z-50 transition-transform duration-300 ease-in-out ${
-          state.isVisible ? 'translate-y-0' : '-translate-y-full'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex flex-col items-center justify-center w-[100px] h-16">
-              <div className="w-full h-0.5 bg-white"></div>
-              <span className="text-xl py-1 font-extrabold">TripTrek</span>
-              <div className="w-full h-0.5 bg-white"></div>
-            </div>
-  
-            {/* Menu items */}
-            <div className="hidden md:flex space-x-8 text-lg font-medium">
-              {navItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className={`hover:text-sky-400 transition-colors duration-200 ${
-                    state.activeItem === item.href ? "text-sky-400" : ""
-                  }`}
-                >
-                  {item.name}
-                </a>
-              ))}
-            </div>
-  
-            {/* User profile */}
-            <div className="flex items-center space-x-3">
-              <Image
-                src="/avatar.png"
-                alt="User Avatar"
-                width={40}
-                height={40}
-                className="rounded-full border-2 border-sky-400"
-              />
-              <span className="font-semibold">Username</span>
+          className={`fixed ${isNotHome && 'hidden'} top-0 left-0 w-full bg-[#33333380] backdrop-blur-sm text-white shadow-md z-50 transition-transform duration-300 ease-in-out ${
+            state.isVisible ? 'translate-y-0' : '-translate-y-full'
+          }`}
+        >
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex justify-between items-center h-16">
+              {/* Logo */}
+              <div className="flex flex-col items-center justify-center w-[100px] h-16">
+                <div className="w-full h-0.5 bg-white"></div>
+                <span className="text-xl py-1 font-extrabold">TripTrek</span>
+                <div className="w-full h-0.5 bg-white"></div>
+              </div>
+    
+              {/* Menu items */}
+              <div className="hidden md:flex space-x-8 text-lg font-medium">
+                {navItems.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`hover:text-sky-400 transition-colors duration-200 ${
+                        state.activeItem === item.href ? "text-sky-400" : ""
+                      }`}
+                    >
+                      {item.name}
+                    </Link>
+                ))}
+              </div>
+    
+              {/* User profile */}
+              <div className="flex items-center space-x-3 hidden md:flex">
+                <Link className="flex items-center space-x-2 hover:text-sky-400 transition-colors duration-200" href="/dashboard/tourStore">
+                  <FontAwesomeIcon icon={faTicket} />
+                  <span className="hidden md:block">Đơn hàng</span>
+                </Link>
+                <Link className="flex items-center space-x-2 hover:text-sky-400 transition-colors duration-200" href="/dashboard/tourSelling">
+                  <FontAwesomeIcon icon={faBuilding} />
+                  <span className="hidden md:block">Doanh nghiệp</span>
+                </Link>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Link href="/profile" className="flex items-center space-x-2">
+                <Image
+                  src="/defaultAvatar.jpg"
+                  alt=""
+                  width={40}
+                  height={40}
+                  className="rounded-full border-2 border-sky-400"
+                />
+                <span className="font-semibold">Username</span>
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </nav>
-      ):
-      (
-        <nav>
-          
         </nav>
-      )
-    }
-    
-    </>
-   
   );
 }

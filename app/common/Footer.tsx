@@ -2,10 +2,13 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { faFacebook, faTwitter, faInstagram } from "@fortawesome/free-brands-svg-icons";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+  const pathname = usePathname();
+  const  isHome = pathname === '/';
   return (
-    <footer id="footer" className="bg-white border-t border-gray-200 pt-12 pb-8">
+    <footer id="footer" className={`bg-white border-t border-gray-200 pt-12 pb-8 ${!isHome ? 'hidden' : ''}`}>
       <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-5 gap-10">
         {/* Left - Logo + Email */}
         <div className="md:col-span-2">

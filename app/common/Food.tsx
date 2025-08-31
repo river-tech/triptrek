@@ -69,17 +69,7 @@ export default function Food() {
 
         {/* Button */}
         {/* Button */}
-        <div className="mt-10 flex justify-end">
-          <Link
-            href="/food"
-             className="relative overflow-hidden px-6 py-3 rounded-full font-medium text-white 
-               bg-sky-400 transition-all duration-500 ease-out
-               hover:bg-[length:200%_100%] bg-[length:100%_100%] bg-gradient-to-r from-sky-500 via-sky-400 to-sky-600"
-          >
-          
-            Xem thêm →
-          </Link>
-        </div>
+        
       </div>
     </section>
   );
