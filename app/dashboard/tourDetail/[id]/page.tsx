@@ -3,13 +3,15 @@
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMapMarkerAlt, faCalendar, faUser, faTag, faStar, faHeart, faShare, faPhone, faEnvelope, faClock, faUsers, faCheckCircle, faTimes, faArrowRight } from '@fortawesome/free-solid-svg-icons'
+import { faMapMarkerAlt, faCalendar, faUser, faTag, faStar, faHeart, faShare, faPhone, faEnvelope, faClock, faUsers, faCheckCircle, faTimes, faArrowRight, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 import BackButton from '@/app/common/BackButton'
+import { useRouter } from 'next/navigation'
+
 
 export type TourDetail = {
   id: number
@@ -52,11 +54,13 @@ const TourDetailPage = () => {
   const [loading, setLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState(0)
   const [showBookingForm, setShowBookingForm] = useState(false)
+  const [bookingLoading, setBookingLoading] = useState(false)
   const [bookingData, setBookingData] = useState({
     startDate: '',
     guests: 1,
     specialRequests: ''
   })
+  const router = useRouter()
 
   useEffect(() => {
     const loadTourData = async () => {
@@ -75,11 +79,14 @@ const TourDetailPage = () => {
     loadTourData()
   }, [])
 
-  const handleBooking = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleBooking = async() => {
+    setBookingLoading(true)
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    setBookingLoading(false)
     // Mock booking submission
     alert('Đặt tour thành công! Chúng tôi sẽ liên hệ sớm nhất.')
     setShowBookingForm(false)
+    router.push(`/dashboard/tourStore/?reset=true`)
   }
 
   if (loading) {
@@ -282,9 +289,11 @@ const TourDetailPage = () => {
                     <FontAwesomeIcon icon={faEnvelope} className="text-sky-500" />
                     <span className="text-gray-700 font-medium">{mockBookingData.email}</span>
                     </div>
-                <button className="w-full flex items-center justify-center gap-2 bg-sky-500 text-white py-4 rounded-xl font-semibold hover:bg-sky-600 transition-colors text-lg">
-                    Đặt tour ngay
-                    <FontAwesomeIcon icon={faArrowRight} className="text-white" />
+                <button onClick={()=>handleBooking()} className={`w-full ${bookingLoading ? 'opacity-50 cursor-not-allowed' : ''} cursor-pointer flex items-center justify-center gap-2 bg-sky-500 text-white py-4 rounded-xl font-semibold hover:bg-sky-600 transition-colors text-lg `}>
+                   {bookingLoading ? (<>
+                    <FontAwesomeIcon icon={faSpinner} spin />
+                   
+                   </>) : 'Đặt ngay'}
                 </button>
                 </div>
           </div>

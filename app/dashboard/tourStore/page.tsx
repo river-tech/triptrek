@@ -1,11 +1,12 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleCheck, faClock, faLocationDot, faTicket, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { BookingStatus } from '@/app/enum/BookingStatus'
 import BackButton from '@/app/common/BackButton'
+import { useSearchParams } from 'next/navigation'
 
 // Types matching your schema
 
@@ -78,7 +79,14 @@ const statusLabel: Record<BookingStatus, string> = {
 
 const Page = () => {
   const [tab, setTab] = useState<BookingStatus | 'all'>('all')
-
+  const searchParams = useSearchParams()
+  const reset = searchParams.get('reset')
+  useEffect(() => {
+    if (reset) {
+      setTab('all')
+    }
+    console.log(reset)
+  }, [reset])
   const bookings = useMemo(() => {
     if (tab === 'all') return mockBookings
     return mockBookings.filter(b => b.status === tab)

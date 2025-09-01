@@ -115,6 +115,7 @@ const Page = () => {
               className="w-full bg-white pl-10 text-black px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
           </div>
+          <button onClick={() => router.push('/dashboard/tourSelling/bookingManage')} className="inline-flex items-center cursor-pointer gap-2 px-4 py-2 rounded-lg bg-sky-500 text-white hover:bg-sky-600 transition-colors">Quản lí đặt tour</button>
         </div>
 
         {/* List */}
