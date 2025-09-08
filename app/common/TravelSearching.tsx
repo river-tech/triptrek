@@ -18,6 +18,15 @@ export default function TravelSearching({}) {
     "1-3m": "1 - 3 triệu",
     ">3m": "Trên 3 triệu",
   };
+  const filterPriceList = () => {
+    return (
+      <div className="absolute top-18 left-0 w-full bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-200 animate-slideDown z-50">
+        {Object.keys(priceLabelMap).map((key) => (
+          <div key={key}>{priceLabelMap[key as PriceOption]}</div>
+        ))}
+      </div>
+    )
+  }
 
   const handleSearch = () => {
     // Tạm thời chỉ log ra. Có thể nâng cấp để chuyển trang / gọi API.

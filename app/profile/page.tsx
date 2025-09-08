@@ -14,6 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
 import BackButton from "../common/BackButton";
+import useAuth from "@/hooks/useAuth";
 
 const SettingsPage = () => {
   const [profile, setProfile] = useState({
@@ -27,7 +28,7 @@ const SettingsPage = () => {
   const [avatar, setAvatar] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
-
+  const { handleLogout } = useAuth(); 
   const handleEdit = (field: string, value: string) => {
     setIsEditing(field);
     setEditValue(value);
@@ -215,7 +216,11 @@ const SettingsPage = () => {
               </div>
 
               {/* Save Button */}
-              <div className="flex justify-end mt-10">
+              <div className="flex justify-between mt-10 gap-4">
+
+                <button onClick={()=>{handleLogout()}} className="px-8 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium">
+                  Đăng xuất
+                </button>
                 <button onClick={()=>handleSubmit()} className="px-8 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors font-medium">
                   {submitLoading ? (<>
                     <FontAwesomeIcon icon={faSpinner} spin />

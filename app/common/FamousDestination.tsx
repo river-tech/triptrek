@@ -49,11 +49,11 @@ const FamousDestination = () => {
         </h2>
 
         <div className="relative">
-          <button aria-label="Trước" className="dest-prev absolute -left-20 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white shadow ring-1 ring-black/5 flex items-center justify-center">
-            <FontAwesomeIcon className='text-sky-500' icon={faChevronLeft} />
+          <button aria-label="Trước" className="dest-prev hover:scale-105 cursor-pointer hover:bg-sky-500/20 hover:text-white absolute -left-20 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white shadow ring-1 ring-black/5 flex items-center justify-center">
+            <FontAwesomeIcon className='text-sky-500 hover:text-white' icon={faChevronLeft} />
           </button>
-          <button aria-label="Sau" className="dest-next absolute -right-20 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white shadow ring-1 ring-black/5 flex items-center justify-center">
-            <FontAwesomeIcon className='text-sky-500' icon={faChevronRight} />
+          <button aria-label="Sau" className="dest-next hover:scale-105 cursor-pointer hover:bg-sky-500/20 hover:text-white absolute -right-20 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white shadow ring-1 ring-black/5 flex items-center justify-center">
+            <FontAwesomeIcon className='text-sky-500 hover:text-white' icon={faChevronRight} />
           </button>
 
           <Swiper
@@ -68,7 +68,7 @@ const FamousDestination = () => {
           >
             {list.map((item) => (
               <SwiperSlide key={item.id}>
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center m-4 hover:scale-105 transition-all duration-300">
                   <div className="relative w-full aspect-square max-w-[260px] rounded-2xl overflow-hidden shadow-lg mx-auto">
                     <Image
                       src={item.img}

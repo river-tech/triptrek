@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Travel() {
   const promotions = [
@@ -20,7 +21,7 @@ export default function Travel() {
       img: "/promo3.jpg",
     },
   ];
-
+  const router = useRouter();
   return (
     <section id="travel" className="py-16 bg-gray-50 text-gray-800">
       <div className="max-w-6xl mx-auto px-6 text-center">
@@ -34,6 +35,7 @@ export default function Travel() {
         <div className="grid md:grid-cols-3 gap-8">
           {promotions.map((item) => (
             <div
+            onClick={()=>router.push(`/dashboard/tourDetail/${item.title}`)}
               key={item.id}
               className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-2"
             >

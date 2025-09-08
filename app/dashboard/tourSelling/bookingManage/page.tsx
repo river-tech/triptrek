@@ -17,7 +17,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import Image from "next/image";
 import BackButton from "@/app/common/BackButton";
-import { BookingStatus } from "@/app/enum/BookingStatus";
+import { EBookingStatus } from "@/app/enum/BookingStatus";
+import DeleteModal from "@/app/Modal/DeleteModal";
 
 export type Booking = {
   id: string;
@@ -31,7 +32,7 @@ export type Booking = {
   tourEndDate: string;
   destination: string;
   price: number;
-  status: BookingStatus;
+  status: EBookingStatus;
 };
 
 const mockBookings: Booking[] = [
@@ -48,7 +49,7 @@ const mockBookings: Booking[] = [
     tourEndDate: "2024-02-03",
     destination: "Đà Lạt",
     price: 2500000,
-    status: BookingStatus.PENDING,
+    status: EBookingStatus.PENDING,
   },
   {
     id: "2",
@@ -63,7 +64,7 @@ const mockBookings: Booking[] = [
     tourEndDate: "2024-02-06",
     destination: "Hạ Long",
     price: 1800000,
-    status: BookingStatus.SUCCESS,
+    status: EBookingStatus.SUCCESS,
   },
   {
     id: "3",
@@ -78,7 +79,7 @@ const mockBookings: Booking[] = [
     tourEndDate: "2024-02-10",
     destination: "Hội An",
     price: 800000,
-    status: BookingStatus.PENDING,
+    status: EBookingStatus.PENDING,
   },
   {
     id: "4",
@@ -93,7 +94,7 @@ const mockBookings: Booking[] = [
     tourEndDate: "2024-02-18",
     destination: "Phú Quốc",
     price: 4500000,
-    status: BookingStatus.DENY,
+    status: EBookingStatus.DENY,
   },
   {
     id: "5",
@@ -108,7 +109,7 @@ const mockBookings: Booking[] = [
     tourEndDate: "2024-02-22",
     destination: "Sapa",
     price: 2200000,
-    status: BookingStatus.SUCCESS,
+    status: EBookingStatus.SUCCESS,
   },
 ];
 
@@ -119,7 +120,7 @@ const formatDate = (iso: string) => new Date(iso).toLocaleDateString("vi-VN");
 export default function BookingManagementPage() {
   const [bookings, setBookings] = useState<Booking[]>(mockBookings);
   const [activeTab, setActiveTab] = useState<
-    "all" | BookingStatus.PENDING | BookingStatus.SUCCESS | BookingStatus.DENY
+    "all" | EBookingStatus.PENDING | EBookingStatus.SUCCESS | EBookingStatus.DENY
   >("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBookings, setSelectedBookings] = useState<string[]>([]);
@@ -138,26 +139,26 @@ export default function BookingManagementPage() {
     return matchesTab && matchesSearch;
   });
 
-  const getStatusColor = (status: BookingStatus) => {
+  const getStatusColor = (status: EBookingStatus) => {
     switch (status) {
-      case BookingStatus.PENDING:
+      case EBookingStatus.PENDING:
         return "bg-yellow-100 text-yellow-800";
-      case BookingStatus.SUCCESS:
+      case EBookingStatus.SUCCESS:
         return "bg-green-100 text-green-800";
-      case BookingStatus.DENY:
+      case EBookingStatus.DENY:
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getStatusText = (status: BookingStatus) => {
+  const getStatusText = (status: EBookingStatus) => {
     switch (status) {
-      case BookingStatus.PENDING:
+      case EBookingStatus.PENDING:
         return "Chờ duyệt";
-      case BookingStatus.SUCCESS:
+      case EBookingStatus.SUCCESS:
         return "Đã duyệt";
-      case BookingStatus.DENY:
+      case EBookingStatus.DENY:
         return "Từ chối";
       default:
         return "Không xác định";
@@ -168,7 +169,7 @@ export default function BookingManagementPage() {
     setBookings((prev) =>
       prev.map((booking) =>
         booking.id === id
-          ? { ...booking, status: BookingStatus.SUCCESS }
+          ? { ...booking, status: EBookingStatus.SUCCESS }
           : booking
       )
     );
@@ -177,7 +178,7 @@ export default function BookingManagementPage() {
   const handleDeny = (id: string) => {
     setBookings((prev) =>
       prev.map((booking) =>
-        booking.id === id ? { ...booking, status: BookingStatus.DENY } : booking
+        booking.id === id ? { ...booking, status: EBookingStatus.DENY } : booking
       )
     );
   };
@@ -226,19 +227,19 @@ export default function BookingManagementPage() {
   const tabs = [
     { key: "all", label: "Tất cả", count: bookings.length },
     {
-      key: BookingStatus.PENDING,
+      key: EBookingStatus.PENDING,
       label: "Chờ duyệt",
-      count: bookings.filter((b) => b.status === BookingStatus.PENDING).length,
+      count: bookings.filter((b) => b.status === EBookingStatus.PENDING).length,
     },
     {
-      key: BookingStatus.SUCCESS,
+      key: EBookingStatus.SUCCESS,
       label: "Đã duyệt",
-      count: bookings.filter((b) => b.status === BookingStatus.SUCCESS).length,
+      count: bookings.filter((b) => b.status === EBookingStatus.SUCCESS).length,
     },
     {
-      key: BookingStatus.DENY,
+      key: EBookingStatus.DENY,
       label: "Từ chối",
-      count: bookings.filter((b) => b.status === BookingStatus.DENY).length,
+      count: bookings.filter((b) => b.status === EBookingStatus.DENY).length,
     },
   ];
 
@@ -446,7 +447,7 @@ export default function BookingManagementPage() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-3">
-                      {booking.status === BookingStatus.PENDING && (
+                      {booking.status === EBookingStatus.PENDING && (
                         <>
                           <button
                             onClick={() => handleApprove(booking.id)}
@@ -482,32 +483,7 @@ export default function BookingManagementPage() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Xác nhận xóa
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {deleteTarget === "single"
-                ? "Bạn có chắc chắn muốn xóa booking này không?"
-                : `Bạn có chắc chắn muốn xóa ${selectedBookings.length} booking đã chọn không?`}
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Xóa
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteModal setShowDeleteModal={setShowDeleteModal} handleDeleteSelected={confirmDelete} title="Xác nhận xoá booking" description={deleteTarget === "single" ? "Bạn có chắc chắn muốn xóa booking này không?" : `Bạn có chắc chắn muốn xóa ${selectedBookings.length} booking đã chọn không?`} />
       )}
     </div>
   );

@@ -3,16 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+     "dev": "next dev --hostname 10.243.67.101 --port 3000",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"
+    
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.0.0",
     "@fortawesome/free-brands-svg-icons": "^7.0.0",
     "@fortawesome/free-solid-svg-icons": "^7.0.0",
     "@fortawesome/react-fontawesome": "^3.0.0",
+    "@types/js-cookie": "^3.0.6",
+    "js-cookie": "^3.0.5",
     "next": "^15.5.1-canary.17",
     "react": "19.1.0",
     "react-dom": "19.1.0",

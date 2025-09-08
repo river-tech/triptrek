@@ -1,7 +1,7 @@
 'use client'
 import TravelSearching from '@/app/common/TravelSearching'
 import HeroSection from '@/app/common/HeroSection'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from 'swiper/modules';
 import "swiper/css";
@@ -13,9 +13,47 @@ import BackButton from '@/app/common/BackButton';
 
 
 
+
 const page = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [result, setResult] = useState<any[]>([]);
+  const mockTours = [
+    {
+      id: 1,
+      name: 'Khám phá Đà Nẵng 5N4Đ – Biển & Ẩm thực',
+      price: 3590000,
+      destination: 'Đà Nẵng, Việt Nam',
+    },
+    {
+      id: 2,
+      name: 'Khám phá Hội An 3N2Đ – Phố đèn lồng',
+      price: 2490000,
+      destination: 'Hội An, Quảng Nam',
+    },
+    {
+      id: 3,
+      name: 'Khám phá Đà Lạt 4N3Đ – Săn mây',
+      price: 3190000,
+      destination: 'Đà Lạt, Lâm Đồng',
+    },
+    {
+      id: 4,
+      name: 'Khám phá Phú Quốc 4N3Đ – Săn mây',
+      price: 3190000,
+      destination: 'Phú Quốc, Kiên Giang',
+    },
+    {
+      id: 5,
+      name: 'Khám phá Đà Nẵng 5N4Đ – Biển & Ẩm thực',
+      price: 3590000,
+      destination: 'Đà Nẵng, Việt Nam',
+    },
+  ]
+  useEffect(() => {
+    setIsSearching(true)
+    setResult(mockTours)
+    setIsSearching(false)
+  }, [])
 
   const chunkArray = <T,>(arr: T[], size: number): T[][] => {
     const chunks: T[][] = []
@@ -32,19 +70,18 @@ const page = () => {
     <HeroSection backgroundUrl='/mountain.jpg' heightClass='h-[700px]'>
       <div className="text-center mt-10">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">Tìm chuyến đi của bạn</h1>
-        <p className="text-white/90 mb-6">Chọn điểm đến, thời gian và mức giá phù hợp</p>
+        <p className="text-white mb-6">Chọn điểm đến, thời gian và mức giá phù hợp</p>
         <TravelSearching />
       </div>
     </HeroSection>
       {
-        isSearching && (
+        !isSearching && (
           <section className="max-w-7xl mx-auto px-6 py-12">
       <h2 className="text-[36px] sm:text-[42px] font-extrabold text-sky-500 mb-8">
-        Tour du lịch của bạn
+        Tour du lịch phù hợp 
       </h2>
 
-      <div className="relative">
-      
+      <div className="relative ">
 
         <Swiper
           modules={[Navigation, Pagination]}
@@ -53,9 +90,9 @@ const page = () => {
           spaceBetween={20}
           slidesPerView={1}
         >
-          {chunkArray(result, 3).map((page, pageIndex) => (
+          {chunkArray(result, 4).map((page, pageIndex) => (
             <SwiperSlide key={pageIndex}>
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-4 gap-6">
                 {page.map((item) => (
                   <CardItem key={item.id} item={item} id={item.id} />
                 ))}

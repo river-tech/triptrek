@@ -1,22 +1,34 @@
 "use client";
+import useAuth from "@/hooks/useAuth";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-
+import { useRouter } from "next/navigation";
+import BackButton from "@/app/common/BackButton";
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isShowPassword, setIsShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const { register } = useAuth();
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     console.log("Register with:", { email, username, password });
-    // TODO: call API register
+    const res = await register(email,username, password);
+    if(res){
+      router.push("/authen/signIn");
+    }
+    else{
+      setError("Đăng ký thất bại");
+    }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <BackButton/>
       <div className="grid grid-cols-1 md:grid-cols-2 w-full max-w-5xl bg-white shadow-xl rounded-xl overflow-hidden">
         {/* Left side */}
         <div className="flex flex-col items-center justify-center p-10 bg-gray-100">
@@ -35,7 +47,11 @@ export default function RegisterPage() {
         </div>
 
         {/* Right side (Form) */}
-        <div className="p-10 flex flex-col justify-center">
+        <div className="p-10 flex flex-col justify-center animate-fade-in"
+          style={{
+            animation: "fadeIn 0.8s ease"
+          }}
+        >
           <h2 className="text-2xl font-bold text-sky-500 mb-6">Đăng ký</h2>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -91,6 +107,21 @@ export default function RegisterPage() {
           </p>
         </div>
       </div>
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.8s ease;
+        }
+      `}</style>
     </div>
   );
 }

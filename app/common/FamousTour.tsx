@@ -9,6 +9,7 @@ import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useRouter } from 'next/navigation';
 
 type TourItem = {
   id: number
@@ -27,11 +28,12 @@ type FamouTourProps = {
 }
 
 export const CardItem = ({ item, id }: { item: TourItem, id: number }) => {
+  const router = useRouter();
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-200 overflow-hidden max-w-[340px] mx-auto flex flex-col">
+    <div className="bg-white mb-10 rounded-2xl hover:scale-105 shadow-lg  hover:shadow-xl transition-all duration-200 mt-2 overflow-hidden max-w-[340px] mx-auto flex flex-col">
       <div className="relative w-full aspect-[1.4/1]">
         <Image
-          src={item.img}
+          src={item.img || '/About1.jpg'}
           alt={item.name}
           fill
           className="object-cover"
@@ -64,7 +66,7 @@ export const CardItem = ({ item, id }: { item: TourItem, id: number }) => {
           <span className="text-sky-500 text-2xl font-extrabold">
             {item.price?.toLocaleString('vi-VN')}
           </span>
-          <button className="ml-4 px-4 py-1.5 bg-sky-400 hover:bg-sky-500 text-white rounded-lg text-sm font-semibold shadow transition">Xem chi tiết</button>
+          <button onClick={()=>router.push(`/dashboard/tourDetail/${id}`)} className="ml-4 cursor-pointer px-4 py-1.5 bg-sky-400 hover:bg-sky-500 text-white rounded-lg text-sm font-semibold shadow transition">Xem chi tiết</button>
         </div>
       </div>
    </div>

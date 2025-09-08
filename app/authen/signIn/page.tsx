@@ -2,20 +2,28 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import useAuth from "../../../hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/app/Toast/ToastContext";
+import BackButton from "@/app/common/BackButton";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isShowPassword, setIsShowPassword] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const { login } = useAuth();
+  const router = useRouter();
+  const { showError } = useToast();
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Login with:", { username, password });
-    // TODO: call API login
+    await login(username, password);
+   
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <BackButton/>
       <div className="grid grid-cols-1 md:grid-cols-2 w-full max-w-5xl bg-white shadow-xl rounded-xl overflow-hidden">
         {/* Left side */}
         <div className="flex flex-col items-center justify-center p-10 bg-gray-100">
@@ -34,7 +42,12 @@ export default function LoginPage() {
         </div>
 
         {/* Right side (Form) */}
-        <div className="p-10 flex flex-col justify-center">
+        <div
+          className="p-10 flex flex-col justify-center animate-fade-in"
+          style={{
+            animation: "fadeIn 0.8s ease"
+          }}
+        >
           <h2 className="text-2xl font-bold text-sky-500 mb-6">Đăng nhập</h2>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -59,7 +72,7 @@ export default function LoginPage() {
             </div>
             <div className="flex justify-between text-sm">
               <Link
-                href="/forgot-password"
+                href="/profile/otpCheck"
                 className="text-sky-500 hover:underline"
               >
                 Quên mật khẩu?
@@ -81,6 +94,21 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.8s ease;
+        }
+      `}</style>
     </div>
   );
 }

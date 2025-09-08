@@ -1,13 +1,15 @@
 "use client";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useImmer } from "use-immer";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBuilding, faTicket, faUser } from "@fortawesome/free-solid-svg-icons";
+import useAuth from "@/hooks/useAuth";
 
 export default function Navbar() {
+  const { getToken } = useAuth();
   const navItems = [
     { name: "Trang chủ", href: "#home" },
     { name: "Giới thiệu", href: "#about" },
@@ -21,7 +23,10 @@ export default function Navbar() {
     isVisible: true,
     lastScrollY: 0
   });
-
+  const [token, setToken] = useState<string | null>(null);
+  useEffect(() => {
+    setToken(getToken());
+  }, [getToken]);
   const pathname = usePathname();
   console.log("pathname", pathname);
   const isNotHome = pathname !== "/";
@@ -112,9 +117,25 @@ export default function Navbar() {
                   <FontAwesomeIcon icon={faBuilding} />
                   <span className="hidden md:block">Doanh nghiệp</span>
                 </Link>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Link href="/profile" className="flex items-center space-x-2">
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                {
+                  !token ? (
+                   <div className="flex items-center space-x-3">
+                  <Link href="/authen/signIn" className="px-4 hover:bg-sky-400 cursor-pointer py-2 text-white border border-sky-400 rounded-lg hover:bg-sky-400 hover:text-white transition-all duration-200">
+                    <span>Đăng nhập</span>
+                  </Link>
+                  <Link href="/authen/signUp" className="px-4 hover:bg-sky-400 cursor-pointer py-2 text-white border border-sky-400 rounded-lg hover:bg-sky-400 hover:text-white transition-all duration-200">
+                    <span>Đăng ký</span>
+                  </Link>
+                  </div>
+                  ): (
+                  <>
+                
+
+                   <Link href="/profile" className="flex items-center space-x-2">
+                  
                 <Image
                   src="/defaultAvatar.jpg"
                   alt=""
@@ -124,6 +145,10 @@ export default function Navbar() {
                 />
                 <span className="font-semibold">Username</span>
                 </Link>
+                    </>
+                  )
+                }
+               
               </div>
             </div>
           </div>
