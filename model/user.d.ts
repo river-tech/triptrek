@@ -7,8 +7,25 @@ export interface IUser {
     avatar: string;
 }
 
-export interface IProfile extends IUser {
+export interface IUserReview {
+    id: number;
+    name: string;
+    avatar: string;
+}
+
+export interface IProfile {
     username: string;
-    created_at: string;
-    updated_at: string;
+    email: string;
+    phone: string;
+    avatar: string;
+}
+
+export interface IResetPassword {
+    email: string;
+    otp: string;
+    newPassword: string;
+}
+
+export interface IRequestOTP {
+    email: string;
 }

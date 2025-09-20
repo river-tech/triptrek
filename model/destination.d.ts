@@ -5,3 +5,10 @@ export interface IDestination {
     image: string[];
 }
 
+export interface IFamousDestination {
+   id: number;
+   name: string;
+   description: string;
+   imageURL: string;
+}
+

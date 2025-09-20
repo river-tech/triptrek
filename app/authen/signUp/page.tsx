@@ -16,7 +16,6 @@ export default function RegisterPage() {
 
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Register with:", { email, username, password });
     const res = await register(email,username, password);
     if(res){
       router.push("/authen/signIn");

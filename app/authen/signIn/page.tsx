@@ -8,7 +8,7 @@ import { useToast } from "@/app/Toast/ToastContext";
 import BackButton from "@/app/common/BackButton";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isShowPassword, setIsShowPassword] = useState(false);
   const { login } = useAuth();
@@ -16,9 +16,8 @@ export default function LoginPage() {
   const { showError } = useToast();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login with:", { username, password });
-    await login(username, password);
-   
+    console.log("Login with:", { email, password });
+    await login(email, password);
   };
 
   return (
@@ -51,23 +50,26 @@ export default function LoginPage() {
           <h2 className="text-2xl font-bold text-sky-500 mb-6">Đăng nhập</h2>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-gray-600 mb-2">Username</label>
+              <label className="block text-gray-600 mb-2">Email</label>
               <input
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-2 border rounded-lg text-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-400"
-                placeholder="Enter username"
+                placeholder="Nhập email"
+                required
+                pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                title="Vui lòng nhập email hợp lệ"
               />
             </div>
             <div>
-              <label className="block text-gray-600 mb-2">Password</label>
+              <label className="block text-gray-600 mb-2">Mật khẩu</label>
               <input
                 type={isShowPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2 border rounded-lg text-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-400"
-                placeholder="Enter password"
+                placeholder="Nhập mật khẩu"
               />
             </div>
             <div className="flex justify-between text-sm">

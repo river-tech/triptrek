@@ -7,17 +7,17 @@ export default function Food() {
     {
       id: 1,
       title: "Bún chả Hàng Quạt",
-      img: "/food1.jpg",
+      img: "https://i.pinimg.com/1200x/0e/2f/dd/0e2fdd26cd255e80de81188654df607f.jpg",
     },
     {
       id: 2,
       title: "Bánh xèo miền Trung",
-      img: "/food2.jpg",
+      img: "https://i.pinimg.com/1200x/c0/04/91/c00491859883ed04dbbb5bbe2be3a721.jpg",
     },
     {
       id: 3,
       title: "Phở Hà Nội",
-      img: "/food3.jpg",
+      img: "https://i.pinimg.com/736x/01/a4/c5/01a4c5a8a692f4a15e0c66b2a3ee9ee8.jpg",
     },
   ];
 
@@ -59,7 +59,7 @@ export default function Food() {
                   height={200}
                   className="w-full h-[190px] object-cover rounded-2xl shadow-lg"
                 />
-                <p className="absolute bottom-3 left-3 text-white font-medium drop-shadow-md">
+                <p className="absolute bottom-3 shadow-lg left-3 text-white font-medium drop-shadow-md">
                   {item.title}
                 </p>
               </div>

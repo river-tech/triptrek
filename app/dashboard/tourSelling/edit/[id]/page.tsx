@@ -6,17 +6,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCamera, faMapMarkerAlt, faUser, faCalendar, faTag, faFileText, faUpload, faSave, faTimes, faEdit } from '@fortawesome/free-solid-svg-icons'
 import BackButton from '@/app/common/BackButton'
 import { useRouter, useParams } from 'next/navigation'
-
-export type TourFormData = {
-  name: string
-  description: string
-  price: number
-  start_date: string
-  end_date: string
-  destination_id: number | undefined
-  guide_name: string
-  image: string[]
-}
+import useData from '@/hooks/useData'
+import { ITourDetail } from '@/model/tour'
 
 const mockDestinations = [
   { id: 1, name: 'Đà Nẵng, Việt Nam' },
@@ -27,57 +18,39 @@ const mockDestinations = [
   { id: 6, name: 'Huế, Thừa Thiên Huế' },
 ]
 
-// Mock existing tour data - replace with API call
-const mockExistingTour: TourFormData = {
-  name: 'Khám phá Đà Nẵng 5N4Đ – Biển & Ẩm thực',
-  description: 'Tour khám phá Đà Nẵng với những điểm đến nổi tiếng như Bãi biển Mỹ Khê, Bán đảo Sơn Trà, và ẩm thực đặc sắc của miền Trung.',
-  price: 3590000,
-  start_date: '2025-09-01',
-  end_date: '2025-09-05',
-  destination_id: 1,
-  guide_name: 'Nguyễn Văn Hướng',
-  image: ['/About1.jpg', '/About2.jpg', '/About3.jpg', '/image1.png']
-}
-
 const EditTour = () => {
   const router = useRouter()
   const params = useParams()
   const tourId = params.id
-
-  const [formData, setFormData] = useState<TourFormData>(mockExistingTour)
-  const [imagePreview, setImagePreview] = useState<string[]>(mockExistingTour.image)
+  const { getTourById } = useData()
+  const [imagePreview, setImagePreview] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState("")
   const [loading, setLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [tourData, setTourData] = useState<ITourDetail | null>(null)
 
-  // Load tour data when component mounts
   useEffect(() => {
-    const loadTourData = async () => {
+    const fetchTourData = async () => {
       setLoading(true)
-      try {
-        // Mock API call - replace with actual API
-        await new Promise(resolve => setTimeout(resolve, 500))
-        // In real app: const tourData = await fetchTourById(tourId)
-        setFormData(mockExistingTour)
-        setImagePreview(mockExistingTour.image)
-      } catch (error) {
-        setErrors('Không thể tải thông tin tour')
-      } finally {
-        setLoading(false)
-      }
+      const tourData = await getTourById(tourId as string)
+      setTourData(tourData as ITourDetail)
+      setImagePreview(tourData?.images || [])
+      setLoading(false)
     }
+    fetchTourData()
+  }, [])
 
-    if (tourId) {
-      loadTourData()
-    }
-  }, [tourId])
-
-  const handleInputChange = (field: keyof TourFormData, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+  // Hàm cập nhật giá trị cho các trường của ITourDetail
+  const handleInputChange = (field: keyof ITourDetail, value: any) => {
+    setTourData(prev => {
+      if (!prev) return prev
+      return { ...prev, [field]: value }
+    })
     if (errors) setErrors('')
   }
 
+  // Xử lý upload ảnh
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, idx: number) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -87,7 +60,10 @@ const EditTour = () => {
         const newImagePreview = [...imagePreview]
         newImagePreview[idx] = result
         setImagePreview(newImagePreview)
-        setFormData(prev => ({ ...prev, image: newImagePreview }))
+        setTourData(prev => {
+          if (!prev) return prev
+          return { ...prev, images: newImagePreview }
+        })
       }
       reader.readAsDataURL(file)
     }
@@ -103,39 +79,43 @@ const EditTour = () => {
   const removeImage = (idx: number) => {
     const newImagePreview = imagePreview.filter((_, index) => index !== idx)
     setImagePreview(newImagePreview)
-    setFormData(prev => ({ ...prev, image: newImagePreview }))
+    setTourData(prev => {
+      if (!prev) return prev
+      return { ...prev, image: newImagePreview }
+    })
   }
 
+  // Validate theo ITourDetail
   const validateForm = (): boolean => {
-    if (!formData.name.trim()) {
+    if (!tourData || !tourData.name?.trim()) {
       setErrors('Tên tour là bắt buộc')
       return false
     }
-    if (!formData.destination_id) {
+    if (!tourData.destination) {
       setErrors('Vui lòng chọn điểm đến')
       return false
     }
-    if (formData.price <= 0) {
+    if (typeof tourData.price !== 'number' || tourData.price <= 0) {
       setErrors('Giá tour phải lớn hơn 0')
       return false
     }
-    if (!formData.start_date.trim()) {
+    if (!tourData.startDate?.trim()) {
       setErrors('Ngày bắt đầu là bắt buộc')
       return false
     }
-    if (!formData.end_date.trim()) {
+    if (!tourData.endDate?.trim()) {
       setErrors('Ngày kết thúc là bắt buộc')
       return false
     }
-    if (!formData.image.length) {
+    if (!tourData.images || !tourData.images.length) {
       setErrors('Vui lòng tải lên ít nhất 1 ảnh tour')
       return false
     }
-    if (!formData.description.trim()) {
+    if (!tourData.description?.trim()) {
       setErrors('Mô tả tour là bắt buộc')
       return false
     }
-    if (!formData.guide_name.trim()) {
+    if (!tourData.guideName?.trim()) {
       setErrors('Tên hướng dẫn viên là bắt buộc')
       return false
     }
@@ -200,7 +180,7 @@ const EditTour = () => {
                 </label>
                 <input
                   type="text"
-                  value={formData.name}
+                  value={tourData?.name || ''}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   placeholder="Ví dụ: Khám phá Đà Nẵng 5N4Đ"
@@ -214,8 +194,8 @@ const EditTour = () => {
                   Điểm đến *
                 </label>
                 <select
-                  value={formData.destination_id || ''}
-                  onChange={(e) => handleInputChange('destination_id', Number(e.target.value))}
+                  value={tourData?.destination || ''}
+                  onChange={(e) => handleInputChange('destination', Number(e.target.value))}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 >
                   <option value="">Chọn điểm đến</option>
@@ -233,14 +213,14 @@ const EditTour = () => {
                 </label>
                 <input
                   type="number"
-                  value={formData.price}
+                  value={tourData?.price ?? ''}
                   onChange={(e) => handleInputChange('price', Number(e.target.value))}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   placeholder="Ví dụ: 5000000"
                   min="0"
                 />
-                {formData.price > 0 && (
-                  <p className="text-sm text-gray-600 mt-1">Hiển thị: {currency(formData.price)}</p>
+                {tourData?.price && (
+                  <p className="text-sm text-gray-600 mt-1">Hiển thị: {currency(tourData.price)}</p>
                 )}
               </div>
 
@@ -252,8 +232,8 @@ const EditTour = () => {
                 </label>
                 <input
                   type="text"
-                  value={formData.guide_name}
-                  onChange={(e) => handleInputChange('guide_name', e.target.value)}
+                  value={tourData?.guideName || ''}
+                  onChange={(e) => handleInputChange('guideName', e.target.value)}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   placeholder="Tên hướng dẫn viên"
                 />
@@ -273,8 +253,8 @@ const EditTour = () => {
                     <label className="block text-xs text-gray-500 mb-1">Ngày bắt đầu</label>
                     <input
                       type="date"
-                      value={formData.start_date}
-                      onChange={(e) => handleInputChange('start_date', e.target.value)}
+                      value={tourData?.startDate || ''}
+                      onChange={(e) => handleInputChange('startDate', e.target.value)}
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     />
                   </div>
@@ -282,8 +262,8 @@ const EditTour = () => {
                     <label className="block text-xs text-gray-500 mb-1">Ngày kết thúc</label>
                     <input
                       type="date"
-                      value={formData.end_date}
-                      onChange={(e) => handleInputChange('end_date', e.target.value)}
+                      value={tourData?.endDate || ''}
+                      onChange={(e) => handleInputChange('endDate', e.target.value)}
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     />
                   </div>
@@ -297,7 +277,7 @@ const EditTour = () => {
                   Mô tả tour *
                 </label>
                 <textarea
-                  value={formData.description}
+                  value={tourData?.description || ''}
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   rows={4}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"
@@ -311,7 +291,6 @@ const EditTour = () => {
                   <FontAwesomeIcon icon={faUpload} className="mr-2 text-sky-500" />
                   Ảnh tour * (Tối thiểu 1 ảnh)
                 </label>
-                
                 <div className="grid grid-cols-2 gap-4">
                   {[0, 1, 2, 3].map((idx) => (
                     <div key={idx} className="relative w-full h-40">
@@ -343,7 +322,6 @@ const EditTour = () => {
                     </div>
                   ))}
                 </div>
-                
                 <input
                   ref={fileInputRef}
                   type="file"

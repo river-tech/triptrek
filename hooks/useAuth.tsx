@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 export default function useAuth() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const { showError } = useToast();
+    const { showError, showSuccess } = useToast();
     const router = useRouter();
     const login = async (email: string, password: string) => {
         try {
@@ -16,10 +16,14 @@ export default function useAuth() {
             });
     
             const data = await response.json();
-    
             if (response.ok && data.token) {
                 Cookies.set("token", data.token, { expires: 7 }); // lưu token vào cookies 7 ngày
-                router.push("/dashboard");
+                router.push("/");
+                showSuccess("Đăng nhập thành công");
+            }
+            else{
+                showError(data?.message);
+                return null;
             }
 
     
@@ -41,11 +45,14 @@ export default function useAuth() {
             });
             const data = await response.json();
     
-            if (response.ok && data.token) {
-                Cookies.set("token", data.token, { expires: 7 }); // lưu token vào cookies 7 ngày
+            if (response.ok) {
+                showSuccess("Đăng ký thành công");
                 router.push("/authen/signIn");
             }
-    
+            else{
+                showError(data?.message);
+                return null;
+            }
             return data;
         } catch (error) {
             showError("Đăng ký thất bại");
@@ -59,6 +66,7 @@ export default function useAuth() {
       };
 
     const handleLogout = () => {
+        showSuccess("Đăng xuất thành công");
         Cookies.remove("token");
         router.push("/");
     }

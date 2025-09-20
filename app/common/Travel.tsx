@@ -2,26 +2,25 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { IFamousDestination } from "@/model/destination";
+import useData from "@/hooks/useData";
+import { useEffect, useState } from "react";
 
 export default function Travel() {
-  const promotions = [
-    {
-      id: 1,
-      title: "Welcome to Quảng Bình",
-      img: "/promo1.jpg",
-    },
-    {
-      id: 2,
-      title: "Hello Hong Kong",
-      img: "/promo2.jpg",
-    },
-    {
-      id: 3,
-      title: "Khám phá Tây Bắc",
-      img: "/promo3.jpg",
-    },
-  ];
+  const { getPopularDestinations } = useData();
+  const [popularDestinations, setPopularDestinations] = useState<IFamousDestination[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    getPopularDestinations()
+      .then((res: IFamousDestination[] | undefined) => {
+        setPopularDestinations(res || []);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch popular destinations:", err);
+      });
+  }, []);
+
   return (
     <section id="travel" className="py-16 bg-gray-50 text-gray-800">
       <div className="max-w-6xl mx-auto px-6 text-center">
@@ -33,15 +32,15 @@ export default function Travel() {
 
         {/* Grid Promotions */}
         <div className="grid md:grid-cols-3 gap-8">
-          {promotions.map((item) => (
+          {popularDestinations.map((item) => (
             <div
-            onClick={()=>router.push(`/dashboard/tourDetail/${item.title}`)}
-              key={item.id}
+            onClick={()=>router.push(`/destination/${item.id}`)}
+              key={item.name}
               className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-2"
             >
               <Image
-                src={item.img}
-                alt={item.title}
+                src={item.imageURL}
+                alt={item.name}
                 width={400}
                 height={250}
                 className="w-full h-[200px] object-cover rounded-2xl"
@@ -63,5 +62,6 @@ export default function Travel() {
         </div>
       </div>
     </section>
+    // <>
   );
 }

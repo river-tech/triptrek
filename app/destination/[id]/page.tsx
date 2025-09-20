@@ -2,11 +2,12 @@
 
 import Image from "next/image"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faMapMarkerAlt, faUtensils, faStar, faMap, faChevronDown, faImage } from "@fortawesome/free-solid-svg-icons"
+import { faMapMarkerAlt, faUtensils, faStar, faMap, faChevronDown, faImage, faEdit, faTrash } from "@fortawesome/free-solid-svg-icons"
 import RatingForm from "@/app/common/RatingForm"
 import BackButton from "@/app/common/BackButton"
 import { useEffect, useState } from "react"
 import { IDestination } from "@/model/destination"
+import DeleteModal from "@/app/Modal/DeleteModal"
 
 export default function DestinationDetail() {
 
@@ -29,24 +30,20 @@ export default function DestinationDetail() {
     { id: 4, name: "Chả mực giã tay", image: "/food2.jpg" },
   ]
 
-  const reviews = [
-    { id: 1, user: "Nguyễn Văn A", rating: 5, comment: "Rất đẹp, nước trong xanh, đáng trải nghiệm!", created_at: "2024-08-01" },
-    { id: 2, user: "Trần Thị B", rating: 1, comment: "Cảnh đẹp nhưng hơi đông khách.", created_at: "2024-08-02" },
-  ]
+  
 
   const [isShowCommentList, setIsShowCommentList] = useState(false)
+  const [editId, setEditId] = useState(0)
+  const [editComment, setEditComment] = useState("")
+  const [editRating, setEditRating] = useState(0)
+  const [editHover, setEditHover] = useState(0)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteId, setDeleteId] = useState(0)
   const handleSubmit = (rating: number, comment: string) => {
     console.log(rating, comment)
   }
-  const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
-
-
-  useEffect(() => {
-  const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
-    
-    console.log(totalRating)
-  }, [totalRating])
-
+  
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <BackButton />
@@ -145,47 +142,6 @@ export default function DestinationDetail() {
             ))}
           </div>
         </div> 
-
-        {/* Reviews */}
-        <div className="space-y-16">
-          <div className="flex-col items-center gap-2">
-            <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-bold mb-6 text-gray-900">Đánh giá địa điểm</h2>
-            <button onClick={()=>setIsShowCommentList(!isShowCommentList)} className={`bg-sky-500 transition-transform rounded-full duration-300 ${!isShowCommentList ? "rotate-180" : " rotate-0"} hover:scale-105 text-white py-2 px-2 font-semibold hover:bg-sky-600 transition-colors text-sm`}>
-              <FontAwesomeIcon icon={faChevronDown} />
-              </button>
-            </div>
-          {
-            Array.from({ length: 5 }).map((_, index) => (
-              <FontAwesomeIcon key={index} size="lg" icon={faStar} className={` ${index < totalRating ? 'text-yellow-500' : 'text-gray-300'}`} />
-            ))
-          }
-          </div>
-          
-          
-          <div className="space-y-5">
-            
-            {isShowCommentList && reviews.map((r) => (
-              <div key={r.id} className="bg-white rounded-xl shadow-md p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-gray-900">{r.user}</h3>
-                  <span className="text-sm text-gray-500">{r.created_at}</span>
-                </div>
-                <div className="flex items-center gap-1 mb-2">
-                  {Array.from({ length: r.rating }).map((_, i) => (
-                    <FontAwesomeIcon key={i} icon={faStar} className="text-yellow-500" />
-                  ))}
-                </div>
-                <p className="text-gray-800">{r.comment}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Review Form */}
-          <div className="w-full">
-          <RatingForm handleSubmit={handleSubmit} />
-          </div>
-        </div>
       </div>
     </div>
   )

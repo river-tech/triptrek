@@ -15,20 +15,27 @@ import {
 import { useRouter } from "next/navigation";
 import BackButton from "../common/BackButton";
 import useAuth from "@/hooks/useAuth";
+import { useEffect } from "react";
+import { IProfile } from "@/model/user";
+import useProfile from "@/hooks/useProfile";
 
 const SettingsPage = () => {
-  const [profile, setProfile] = useState({
-    name: "Nguyễn Văn A",
-    email: "nguyenvana@email.com",
-    phone: "0123456789",
+  const [profile, setProfile] = useState<IProfile>({
+    username: "",
+    email: "",
+    phone: "",
+    avatar: "",
   });
 
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [avatar, setAvatar] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingPage, setLoadingPage] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
-  const { handleLogout } = useAuth(); 
+  const { handleLogout } = useAuth();
+  const { getProfile, updateProfile } = useProfile();
+
   const handleEdit = (field: string, value: string) => {
     setIsEditing(field);
     setEditValue(value);
@@ -44,15 +51,17 @@ const SettingsPage = () => {
   };
 
   const handleSubmit = async () => {
-      setSubmitLoading(true);
-      setTimeout(() => {
-        setSubmitLoading(false);
-      }, 1000);
+    setSubmitLoading(true);
+    await updateProfile({
+      avatar: avatar || profile.avatar,
+      phone: profile.phone,
+      username: profile.username,
+    });
+    setSubmitLoading(false);
   };
 
   const uploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    console.log(`file`, file);
     if (!file) return;
 
     setLoading(true);
@@ -69,12 +78,15 @@ const SettingsPage = () => {
     );
 
     const data = await res.json();
-    console.log(data);
     setAvatar(data.url);
-    console.log(`avatar`, data.url);
+    setProfile((prev) => ({
+      ...prev,
+      avatar: data.url,
+    }));
     setLoading(false);
   };
 
+  // Sửa lại hàm renderEditableField để input có thể edit được
   const renderEditableField = (
     field: string,
     label: string,
@@ -82,7 +94,7 @@ const SettingsPage = () => {
     type: string = "text"
   ) => {
     const isCurrentlyEditing = isEditing === field;
-    const currentValue = profile[field as keyof typeof profile];
+    const currentValue = profile?.[field as keyof typeof profile] || "";
 
     return (
       <div className="rounded-xl p-6 shadow-sm border border-gray-100">
@@ -91,6 +103,7 @@ const SettingsPage = () => {
             <FontAwesomeIcon icon={icon} className="text-sky-500" />
           </div>
           <h3 className="text-lg font-semibold text-gray-800">{label}</h3>
+        
         </div>
 
         {isCurrentlyEditing ? (
@@ -124,7 +137,30 @@ const SettingsPage = () => {
       </div>
     );
   };
+
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoadingPage(true);
+      const profile = await getProfile();
+      setProfile(profile);
+      setAvatar(profile?.avatar);
+      setLoadingPage(false);
+    };
+    fetchProfile();
+  }, []);
+
+  if (loadingPage) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải thông tin...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -154,7 +190,7 @@ const SettingsPage = () => {
                       </div>
                     ) : (
                       <Image
-                        src={avatar || "/avatar.png"}
+                        src={avatar || "/defaultAvatar.png"}
                         alt="Avatar"
                         fill
                         className="object-cover rounded-full"
@@ -178,7 +214,7 @@ const SettingsPage = () => {
                   />
                 </div>
                 <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                  {profile.name}
+                  {profile?.username }
                 </h2>
               </div>
             </div>
@@ -193,14 +229,29 @@ const SettingsPage = () => {
                   Thông tin cá nhân
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {renderEditableField("name", "Họ và tên", faUser)}
+                  {renderEditableField("username", "Họ và tên", faUser, "text")}
                   {renderEditableField(
                     "phone",
                     "Số điện thoại",
                     faPhone,
                     "tel"
                   )}
-                  {renderEditableField("email", "Email", faEnvelope, "email")}
+                </div>
+                <div className="rounded-xl mt-5 p-6 shadow-sm border border-gray-100 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-sky-50 flex items-center justify-center">
+                    <FontAwesomeIcon
+                      icon={faEnvelope}
+                      className="text-sky-500"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Email
+                    </h3>
+                    <p className="text-gray-600">
+                      {profile?.email || "Không có email"}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -217,14 +268,25 @@ const SettingsPage = () => {
 
               {/* Save Button */}
               <div className="flex justify-between mt-10 gap-4">
-
-                <button onClick={()=>{handleLogout()}} className="px-8 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium">
+                <button
+                  onClick={() => {
+                    handleLogout();
+                  }}
+                  className="px-8 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                >
                   Đăng xuất
                 </button>
-                <button onClick={()=>handleSubmit()} className="px-8 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors font-medium">
-                  {submitLoading ? (<>
-                    <FontAwesomeIcon icon={faSpinner} spin />
-                  </>) : 'Lưu thay đổi'}
+                <button
+                  onClick={() => handleSubmit()}
+                  className="px-8 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors font-medium"
+                >
+                  {submitLoading ? (
+                    <>
+                      <FontAwesomeIcon icon={faSpinner} spin />
+                    </>
+                  ) : (
+                    "Lưu thay đổi"
+                  )}
                 </button>
               </div>
             </div>

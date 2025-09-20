@@ -3,14 +3,26 @@
 import { faStar } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { useState } from 'react'
+import useBooking from '@/hooks/useBooking'
+import Loading from './Loading'
 
-const RatingForm = ({ handleSubmit }: { handleSubmit: (rating: number, comment: string) => void }) => {
-  const [rating, setRating] = useState(0)
+const RatingForm = ({
+  id
+}: {
+  id: string
+}) => {
+  const { postReviewTour } = useBooking()
+  const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0)
   const [comment, setComment] = useState('')
+  const [loading, setLoading] = useState(false)
   
-  const handleSubmitRating = () => {
-    handleSubmit(rating, comment)
+  
+  
+  const handleSubmitRating = async() => {
+    setLoading(true)
+    await postReviewTour({tourId: id, rating, comment})
+    setLoading(false)
   }
 
   return (
@@ -46,9 +58,9 @@ const RatingForm = ({ handleSubmit }: { handleSubmit: (rating: number, comment: 
       />
 
       {/* Submit button */}
-      <button onClick={handleSubmitRating} className="px-6 py-2 bg-sky-600 text-white rounded-lg font-semibold hover:bg-sky-700 transition">
-        Gửi đánh giá
-      </button>
+      {
+        loading ? <Loading text="Đang gửi đánh giá..." /> : <button onClick={handleSubmitRating} className="px-6 py-2 bg-sky-600 text-white rounded-lg font-semibold hover:bg-sky-700 transition" disabled={loading}>Gửi đánh giá</button>
+      }
     </div>
   )
 }

@@ -7,9 +7,13 @@ import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBuilding, faTicket, faUser } from "@fortawesome/free-solid-svg-icons";
 import useAuth from "@/hooks/useAuth";
+import useProfile from "@/hooks/useProfile";
 
 export default function Navbar() {
   const { getToken } = useAuth();
+  const { getProfile } = useProfile();
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const navItems = [
     { name: "Trang chủ", href: "#home" },
     { name: "Giới thiệu", href: "#about" },
@@ -24,17 +28,37 @@ export default function Navbar() {
     lastScrollY: 0
   });
   const [token, setToken] = useState<string | null>(null);
+
+  const pathname = usePathname();
+  const isNotHome = pathname !== "/";
+
+  // Lắng nghe sự kiện popstate để refresh lại navbar khi back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      // Refresh lại token và profile khi back/forward
+      setToken(getToken());
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+    // eslint-disable-next-line
+  }, [getToken]);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const profile = await getProfile();
+      setAvatar(profile?.avatar);
+      setUsername(profile?.username);
+    };
+    fetchProfile();
+  }, [token, getProfile]);
+
   useEffect(() => {
     setToken(getToken());
-  }, [getToken]);
-  const pathname = usePathname();
-  console.log("pathname", pathname);
-  const isNotHome = pathname !== "/";
-  
+  }, [getToken, pathname]);
+
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
       // Ẩn navbar khi cuộn xuống, hiện khi cuộn lên
       if (currentScrollY > state.lastScrollY && currentScrollY > 100) {
         updateState(draft => {
@@ -45,7 +69,6 @@ export default function Navbar() {
           draft.isVisible = true;
         });
       }
-      
       updateState(draft => {
         draft.lastScrollY = currentScrollY;
       });
@@ -132,23 +155,23 @@ export default function Navbar() {
                   </div>
                   ): (
                   <>
-                
-
                    <Link href="/profile" className="flex items-center space-x-2">
-                  
-                <Image
-                  src="/defaultAvatar.jpg"
-                  alt=""
-                  width={40}
-                  height={40}
-                  className="rounded-full border-2 border-sky-400"
-                />
-                <span className="font-semibold">Username</span>
-                </Link>
-                    </>
+                    <div
+                      className="w-10 h-10 rounded-full overflow-hidden border-2 border-sky-400 flex items-center justify-center bg-white"
+                    >
+                      <Image
+                        src={avatar || "/defaultAvatar.jpg"}
+                        alt=""
+                        width={40}
+                        height={40}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    </div>
+                    <span className="font-semibold">{username}</span>
+                  </Link>
+                  </>
                   )
                 }
-               
               </div>
             </div>
           </div>

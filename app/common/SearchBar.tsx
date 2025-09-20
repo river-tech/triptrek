@@ -3,26 +3,30 @@ import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
+import useData from "@/hooks/useData";
 
 export default function ExpandSearch() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchDestination, setSearchDestination] = useState("");
-
-  type destinationType = {
+   type destinationType = {
     id: number;
     name: string;
-    img: string;
   };
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchDestination, setSearchDestination] = useState("");
+  const { getAllDestinations } = useData();
+  const [destinationlist, setDestinationlist] = useState<destinationType[]>([]);
 
-  const destinationlist: destinationType[] = [
-    { id: 1, name: "Hà Nội", img: "/mountain.jpg" },
-    { id: 2, name: "Hồ Chí Minh", img: "/mountain.jpg" },
-    { id: 3, name: "Đà Lạt", img: "/mountain.jpg" },
-    { id: 4, name: "Hạ Long", img: "/mountain.jpg" },
-    { id: 5, name: "Huế", img: "/mountain.jpg" },
-    { id: 6, name: "Phú Quốc", img: "/mountain.jpg" },
-    { id: 7, name: "Sa Pa", img: "/mountain.jpg" },
-  ];
+
+  useEffect(() => {
+    const fetchDestinations = async () => {
+      const res : destinationType[] = await getAllDestinations();
+      setDestinationlist(res || []);
+    }
+    fetchDestinations();
+  }, []);
+
+  
+
+
 
   const router = useRouter();
 
@@ -44,11 +48,7 @@ export default function ExpandSearch() {
                 onClick={() => router.push(`/destination/${destination.id}`)}
                 className="flex items-center gap-3 p-3 cursor-pointer hover:bg-sky-50 transition"
               >
-                <img
-                  src={destination.img}
-                  alt={destination.name}
-                  className="w-12 h-12 rounded-lg object-cover"
-                />
+                
                 <span className="text-gray-700 font-medium">
                   {destination.name}
                 </span>

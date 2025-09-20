@@ -1,57 +1,157 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEye, faEyeSlash, faLock, faShieldAlt, faCircleCheck, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { faEye, faEyeSlash, faLock, faShieldAlt, faCircleCheck, faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import useProfile from '@/hooks/useProfile'
 
-const NewPassword = () => {
+const OTP_LENGTH = 6
+const RESEND_SECONDS = 60
+
+const NewPassword = ({email}:{email:string}) => {
+  // OTP state
+  const [values, setValues] = useState<string[]>(Array(OTP_LENGTH).fill(''))
+  const [seconds, setSeconds] = useState(RESEND_SECONDS)
+  const [submitting, setSubmitting] = useState(false)
+  const inputsRef = useRef<Array<HTMLInputElement | null>>([])
+  const { requestOTP, resetPassword } = useProfile();
+  // Password state
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showNew, setShowNew] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [done, setDone] = useState(false)
+  const [loadingResend, setLoadingResend] = useState(false)
 
-  const passwordStrength = useMemo(() => {
-    let score = 0
-    if (newPassword.length >= 8) score += 1
-    if (/[A-Z]/.test(newPassword)) score += 1
-    if (/[a-z]/.test(newPassword)) score += 1
-    if (/[0-9]/.test(newPassword)) score += 1
-    if (/[^A-Za-z0-9]/.test(newPassword)) score += 1
-    const level = score <= 2 ? 'Yếu' : score === 3 ? 'Khá' : 'Mạnh'
-    const color = score <= 2 ? 'bg-red-500' : score === 3 ? 'bg-yellow-500' : 'bg-green-500'
-    const width = `${(score / 5) * 100}%`
-    return { score, level, color, width }
-  }, [newPassword])
+  // OTP countdown
+  React.useEffect(() => {
+    if (seconds > 0) {
+      const id = setInterval(() => setSeconds((s) => s - 1), 1000)
+      return () => clearInterval(id)
+    }
+  }, [seconds])
 
-  const valid = newPassword.length >= 8 && confirmPassword === newPassword
+  React.useEffect(() => {
+    inputsRef.current[0]?.focus()
+  }, [])
+
+  const code = React.useMemo(() => values.join(''), [values])
+  const isOTPComplete = code.length === OTP_LENGTH && values.every((v) => v !== '')
+
+  const handleChange = (index: number, val: string) => {
+    if (!/^[0-9]?$/.test(val)) return
+    const next = [...values]
+    next[index] = val
+    setValues(next)
+    if (val && index < OTP_LENGTH - 1) inputsRef.current[index + 1]?.focus()
+  }
+
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === 'Backspace' && !values[index] && index > 0) {
+      inputsRef.current[index - 1]?.focus()
+    }
+    if (e.key === 'ArrowLeft' && index > 0)
+      inputsRef.current[index - 1]?.focus()
+    if (e.key === 'ArrowRight' && index < OTP_LENGTH - 1)
+      inputsRef.current[index + 1]?.focus()
+  }
+
+  const resend = async() => {
+    setValues(Array(OTP_LENGTH).fill(''))
+    setLoadingResend(true)
+   await requestOTP({email})
+    setLoadingResend(false)
+    setSeconds(RESEND_SECONDS)
+    inputsRef.current[0]?.focus()
+  }
+
+  // Password strength
+
+
+  const valid =
+    isOTPComplete &&
+   
+    confirmPassword === newPassword
+
   const router = useRouter()
-
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log(email, code, newPassword, confirmPassword)
     if (!valid) return
     setSubmitting(true)
-    await new Promise((r) => setTimeout(r, 900))
+    // // Mock API verify OTP + set password
+    const res = await resetPassword({email : email, otp: code, newPassword: newPassword})
     setSubmitting(false)
-    setDone(true)
-    router.back();
+    if(res){
+      router.push('/authen/signIn')
+    }
+    else{
+      return 
+    }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-6">
+    <div className="h-max-screen flex items-center justify-center bg-gray-50 ">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-sky-100 text-sky-600 mb-3">
             <FontAwesomeIcon icon={faShieldAlt} />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800">Tạo mật khẩu mới</h1>
-          <p className="text-gray-600 mt-1">Hãy đặt mật khẩu mạnh để bảo vệ tài khoản của bạn</p>
+          <h1 className="text-3xl font-bold text-gray-800">Xác thực OTP & Đặt lại mật khẩu</h1>
+          <p className="text-gray-600 mt-1">
+            Vui lòng nhập mã OTP và mật khẩu mới để hoàn tất.
+          </p>
         </div>
-
-        <form onSubmit={submit} className="bg-white rounded-2xl text-black shadow-sm border border-gray-100 p-6 space-y-5">
+        <form
+          onSubmit={submit}
+          className="bg-white rounded-2xl text-black shadow-sm border border-gray-100 p-6 space-y-5"
+        >
+          {/* OTP */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mã OTP</label>
+            <div className="flex justify-between gap-2 sm:gap-3 mb-2">
+              {Array.from({ length: OTP_LENGTH }).map((_, i) => (
+                <input
+                  key={i}
+                  ref={(el) => {
+                    if (el) inputsRef.current[i] = el
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={values[i]}
+                  onChange={(e) => handleChange(i, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(i, e)}
+                  className="w-12 h-14 sm:w-14 sm:h-16 text-center text-black text-2xl font-semibold rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+              ))}
+            </div>
+            <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+              <span>Mã gồm 6 chữ số</span>
+              {seconds > 0 ? (
+                <span>Gửi lại sau {seconds}s</span>
+              ) : (
+               <>
+               {loadingResend ? (
+                <FontAwesomeIcon icon={faSpinner} />
+               ) : (
+                <button
+                  type="button"
+                  onClick={resend}
+                  className="text-sky-600 hover:text-sky-700"
+                  disabled={loadingResend}
+                >
+                  Gửi lại mã
+                </button>
+               )}</>
+              )}
+            </div>
+            
+          </div>
           {/* Mật khẩu mới */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
@@ -77,14 +177,8 @@ const NewPassword = () => {
                 <FontAwesomeIcon icon={showNew ? faEyeSlash : faEye} />
               </button>
             </div>
-            <div className="mt-2">
-              <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                <div className={`h-full ${passwordStrength.color}`} style={{ width: passwordStrength.width }} />
-              </div>
-              <div className="mt-1 text-sm text-gray-600">Độ mạnh: {passwordStrength.level}</div>
-            </div>
+            
           </div>
-
           {/* Xác nhận mật khẩu */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu</label>
@@ -114,14 +208,7 @@ const NewPassword = () => {
               <p className="text-sm text-red-600 mt-1">Mật khẩu xác nhận không khớp</p>
             )}
           </div>
-
-          {done ? (
-            <div className="flex items-center gap-2 text-green-700 bg-green-50 p-3 rounded-lg">
-              <FontAwesomeIcon icon={faCircleCheck} />
-              <span>Đặt lại mật khẩu thành công! Bạn có thể đăng nhập lại.</span>
-            </div>
-          ) : null}
-
+         
           <button
             type="submit"
             disabled={!valid || submitting}
@@ -129,9 +216,10 @@ const NewPassword = () => {
               !valid || submitting ? 'bg-sky-300 cursor-not-allowed' : 'bg-sky-500 hover:bg-sky-600'
             }`}
           >
-            {submitting ? 'Đang lưu...' : 'Lưu mật khẩu mới'}
+            {submitting ? (<>
+            <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+            </>): 'Xác nhận'}
           </button>
-
           <div className="text-center">
             <Link href="/authen/signIn" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-sky-600 mt-2">
               <FontAwesomeIcon icon={faArrowLeft} />
