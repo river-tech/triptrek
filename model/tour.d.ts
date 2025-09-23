@@ -15,9 +15,9 @@ export interface ITour {
 export interface ITourFormData {
     name: string
     description: string
-    price: number
     startDate: string
     endDate: string
+    price: number
     destinationId: number 
     guideName: string
     images: string[];
@@ -33,8 +33,39 @@ export interface ITourDetail {
     destination: string;
     images: string[];
     reviews: IReview[];
-    guideName: string;
+    guide_name: string;
 }
+
+export interface ITourDetailEdit {
+    name: string;
+    description: string;
+    price: number;
+    startDate: string;
+    endDate: string;
+    destination: number;
+    guideName: string;
+    images: string[];
+}
+
+export interface ITourPopular {
+    id: number;
+    name: string;
+    price: number;
+    destination: string;
+    images: string[];
+}
+
+export interface ITourByDes {
+    id : number;
+    name : string;
+    destination : string;
+    price : number;
+    startDate : string;
+    endDate : string;   
+    guideName : string;
+    images : string[];
+}
+
 
 
 

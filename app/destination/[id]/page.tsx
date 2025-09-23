@@ -2,56 +2,63 @@
 
 import Image from "next/image"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faMapMarkerAlt, faUtensils, faStar, faMap, faChevronDown, faImage, faEdit, faTrash } from "@fortawesome/free-solid-svg-icons"
-import RatingForm from "@/app/common/RatingForm"
+import { faMapMarkerAlt, faUtensils, faMap, faImage } from "@fortawesome/free-solid-svg-icons"
 import BackButton from "@/app/common/BackButton"
-import { useEffect, useState } from "react"
-import { IDestination } from "@/model/destination"
-import DeleteModal from "@/app/Modal/DeleteModal"
+import {   useEffect, useState } from "react"
+import useData from "@/hooks/useData"
+import { useParams, useRouter } from "next/navigation"
+import { IDestinationDetail } from "@/model/destination"
+import { ITourByDes } from "@/model/tour"
+import { IFoodByDes } from "@/model/food"
+import Loading from "@/app/common/Loading"
 
-export default function DestinationDetail() {
+export default function DestinationDetail({
+  params  
+}:{
+  params: Promise<{
+    id : string 
+  }>
+}) {
 
-  const destination = {
-    id: 1,
-    name: "Sapa",
-    image: ["/mountain.jpg", "/mountain.jpg", "/mountain.jpg", "/mountain.jpg"],
-  }
-  const tours = [
-    { id: 1, name: "Tour Hạ Long 3N2Đ", price: 2500000, image: "/mountain.jpg" },
-    { id: 2, name: "Khám phá Vịnh Lan Hạ", price: 1800000, image: "/mountain.jpg" },
-    { id: 3, name: "Khám phá Vịnh Lan Hạ", price: 1800000, image: "/mountain.jpg" },
-    { id: 4, name: "Khám phá Vịnh Lan Hạ", price: 1800000, image: "/mountain.jpg" },
-  ]
-
-  const foods = [
-    { id: 1, name: "Bún chả Hạ Long", image: "/food1.jpg" },
-    { id: 2, name: "Chả mực giã tay", image: "/food2.jpg" },
-    { id: 3, name: "Chả mực giã tay", image: "/food2.jpg" },
-    { id: 4, name: "Chả mực giã tay", image: "/food2.jpg" },
-  ]
-
+  const { id } = useParams(); 
+  const router = useRouter();
+  const {getDestinationById, getTourByDestination, getFoodByDestination} = useData();
   
 
-  const [isShowCommentList, setIsShowCommentList] = useState(false)
-  const [editId, setEditId] = useState(0)
-  const [editComment, setEditComment] = useState("")
-  const [editRating, setEditRating] = useState(0)
-  const [editHover, setEditHover] = useState(0)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [deleteId, setDeleteId] = useState(0)
-  const handleSubmit = (rating: number, comment: string) => {
-    console.log(rating, comment)
+  const [destination, setDestination] = useState<IDestinationDetail | null>(null);
+  const [tours, setTours] = useState<ITourByDes[] | null>(null);
+  const [foods, setFoods] = useState<IFoodByDes[] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const fetchDestination = async () => {
+    setIsLoading(true);
+    const destination = await getDestinationById(id as string);
+    const tours = await getTourByDestination(id as string);
+    const foods = await getFoodByDestination(id as string);
+    setIsLoading(false);
+    const newTours = tours?.slice(0, 4);
+    const newFoods = foods?.slice(0, 4);
+    setDestination(destination);
+    setTours(newTours || null);
+    setFoods(newFoods || null);
   }
   
+  useEffect(() => {
+    fetchDestination();
+  }, [id]);
+
+  if (isLoading) {
+    return <Loading text="Đang tải thông tin..." />
+  }
   
   return (
     <div className="min-h-screen bg-gray-50">
+      
       <BackButton />
       {/* Cover */}
       <div className="relative w-full h-[450px]">
-        <Image src="/halong.jpg" alt="Hạ Long" fill className="object-cover" />
+        <Image src={destination?.imageURL || "/mountain.jpg"} alt="Hạ Long" fill className="object-cover" />
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-          <h1 className="text-5xl font-extrabold text-white drop-shadow-lg">Vịnh Hạ Long</h1>
+          <h1 className="text-5xl font-extrabold text-white drop-shadow-lg">{destination?.name}</h1>
         </div>
       </div>
 
@@ -63,8 +70,7 @@ export default function DestinationDetail() {
             Giới thiệu
           </h2>
           <p className="text-lg text-gray-900 leading-relaxed max-w-3xl mx-auto">
-            Vịnh Hạ Long là một trong 7 kỳ quan thiên nhiên thế giới, nổi tiếng với hàng nghìn hòn đảo đá vôi tuyệt đẹp
-            cùng hệ sinh thái đa dạng. Đây là điểm đến lý tưởng cho những ai yêu thích biển cả và khám phá.
+            {destination?.description}
           </p>
         </div>
 
@@ -75,7 +81,7 @@ export default function DestinationDetail() {
           </h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full">
-            {destination.image.map((image, index) => (
+            {destination?.galleryURL.map((image, index) => (
               <div
                 key={index}
                 className="rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-white hover:scale-105 transition-transform duration-300"
@@ -103,13 +109,16 @@ export default function DestinationDetail() {
             </div>
             
           </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            {tours.map((tour) => (
+          <div className="grid md:grid-cols-4 gap-8 w-full items-center justify-center">
+           {tours && tours.length > 0 ? (
+            <>
+             {tours && tours.map((tour) => (
               <div
                 key={tour.id}
+                onClick={() => router.push(`/dashboard/tourDetail/${tour.id}`)}
                 className="bg-white rounded-2xl shadow-lg overflow-hidden hover:scale-[1.02] transition-transform"
               >
-                <Image src={tour.image} alt={tour.name} width={600} height={300} className="w-full h-52 object-cover" />
+                <Image src={tour?.images[0]} alt={tour.name} width={600} height={300} className="w-full h-52 object-cover" />
                 <div className="p-6 flex flex-col justify-between h-40">
                   <h3 className="text-xl font-bold text-gray-900">{tour.name}</h3>
                   <p className="text-sky-600 text-lg font-semibold">
@@ -117,7 +126,12 @@ export default function DestinationDetail() {
                   </p>
                 </div>
               </div>
-            ))}
+            ))}</>
+           ):(
+            <div className="col-span-4 flex w-full items-center justify-center h-40">
+              <p className="text-gray-500">Không có tour nổi bật</p>
+            </div>
+           )}
           </div>
         </div>
 
@@ -131,15 +145,25 @@ export default function DestinationDetail() {
            
           </div>
           <div className="grid md:grid-cols-2 gap-6">
-            {foods.map((food) => (
+           {
+            foods && foods.length > 0 ? (
+              <>
+               {foods && foods.map((food) => (
               <div
                 key={food.id}
                 className="flex items-center gap-5 bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition"
               >
-                <Image src={food.image} alt={food.name} width={140} height={100} className="rounded-lg object-cover" />
-                <h3 className="text-lg font-semibold text-gray-900">{food.name}</h3>
+                <Image src={food?.images[0] || "/mountain.jpg"} alt={food?.name} width={140} height={100} className="rounded-lg h-full object-cover" />
+                <h3 className="text-lg font-semibold text-gray-900">{food?.name}</h3>
               </div>
             ))}
+            </>
+           ):(
+            <div className="col-span-2 flex w-full items-center justify-center h-40">
+              <p className="text-gray-500">Chưa cập nhật món ăn đặc sản</p>
+            </div>
+           )}
+          
           </div>
         </div> 
       </div>

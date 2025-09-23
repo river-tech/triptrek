@@ -7,9 +7,11 @@ import useBooking from '@/hooks/useBooking'
 import Loading from './Loading'
 
 const RatingForm = ({
-  id
+  id,
+  onSubmitted
 }: {
   id: string
+  onSubmitted: () => void
 }) => {
   const { postReviewTour } = useBooking()
   const [rating, setRating] = useState(0);
@@ -17,13 +19,14 @@ const RatingForm = ({
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(false)
   
-  
-  
   const handleSubmitRating = async() => {
     setLoading(true)
     await postReviewTour({tourId: id, rating, comment})
+    setRating(0)
+    setComment('')
     setLoading(false)
-  }
+    onSubmitted()
+  } 
 
   return (
     <div className="bg-white shadow-md w-full rounded-2xl p-6 max-w-2xl mx-auto">

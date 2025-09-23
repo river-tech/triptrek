@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faShieldAlt, faCircleCheck, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import NewPassword from "./NewPasword";
 import BackButton from "@/app/common/BackButton";
 import useProfile from "@/hooks/useProfile";
@@ -12,7 +12,6 @@ const RESEND_SECONDS = 60;
 
 const OtpCheckPage = () => {
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
-  const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const { requestOTP } = useProfile();

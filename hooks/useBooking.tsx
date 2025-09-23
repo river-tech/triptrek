@@ -64,12 +64,12 @@ export default function useBooking() {
 
   const updateReview = async ({
     id,
-    comment,
     rating,
+    comment,
   }: {
     id: string;
-    comment: string;
     rating: number;
+    comment: string;
   }) => {
     try {
       const response = await fetch(`${apiUrl}/reviews/${id}`, {
@@ -78,10 +78,15 @@ export default function useBooking() {
           Authorization: `Bearer ${getToken()}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ comment, rating }),
+        body: JSON.stringify({ rating, comment }),
       });
+      const res = await response.json();
       if (response.ok) {
         showSuccess("Cập nhật đánh giá thành công");
+      }
+      else{
+        showError(res?.message);
+        return null;
       }
     } catch (error) {
       showError("Cập nhật đánh giá tour thất bại, vui lòng thử lại !");
@@ -89,7 +94,7 @@ export default function useBooking() {
     }
   };
 
-  const deleteReview = async ({ id }: { id: string }) => {
+const deleteReview = async ({ id }: { id: string }) => {
     try {
       const response = await fetch(`${apiUrl}/reviews/${id}`, {
         method: "DELETE",
@@ -153,17 +158,19 @@ export default function useBooking() {
       });
       const res = await response.json();
       if (response.ok) {
-        showSuccess(res?.message);
+        showSuccess("xóa vé thành công");
       }
       else {
-        showError(res?.message);
+        showError("xóa vé thất bại");
         return null;
       }
     } catch (error) {
-      showError("Hủy đặt tour thất bại, vui lòng thử lại !");
+      showError("Lỗi kết nối server");
       console.log(error);
     }
   };
+
+  
 
   
  

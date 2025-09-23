@@ -3,45 +3,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import Image from "next/image";
+import { IFamousDestination } from "@/model/destination";
+import { useRouter } from "next/navigation";
 
-const FamousDestination = () => {
-    const list = [
-        {
-            id: 1,
-            name: 'Hà Nội',
-            img: '/mountain.jpg'
-        },
-        {
-            id: 2,
-            name: 'Hồ Chí Minh',
-            img: '/mountain.jpg'
-        },
-        {
-            id: 3,
-            name: 'Đà Lạt',
-            img: '/mountain.jpg'
-        },
-        {
-            id: 4,
-            name: 'Hạ Long',
-            img: '/mountain.jpg'
-        },
-        {
-            id: 5,
-            name: 'Hạ Long',
-            img: '/mountain.jpg'
-        },
-        {
-            id: 6,
-            name: 'Hạ Long',
-            img: '/mountain.jpg'
-        },
-        {
-            id: 7,
-            name: 'Hạ Long',
-            img: '/mountain.jpg'
-        }
-       ]
+const FamousDestination = ({items}: {items: IFamousDestination[]}) => {
+    const router = useRouter();
     return (
         <section className="max-w-7xl mx-auto px-6 py-12">
         <h2 className="text-[36px] sm:text-[42px] font-extrabold text-sky-500 mb-8">
@@ -66,12 +32,12 @@ const FamousDestination = () => {
               1024: { slidesPerView: 5, spaceBetween: 24 }
             }}
           >
-            {list.map((item) => (
+            {items.map((item) => (
               <SwiperSlide key={item.id}>
-                <div className="flex flex-col items-center m-4 hover:scale-105 transition-all duration-300">
+                <div onClick={() => router.push(`/destination/${item.id}`)} className="flex flex-col items-center m-4 hover:scale-105 transition-all duration-300">
                   <div className="relative w-full aspect-square max-w-[260px] rounded-2xl overflow-hidden shadow-lg mx-auto">
                     <Image
-                      src={item.img}
+                      src={item.imageURL}
                       alt={item.name}
                       fill
                       sizes="(max-width: 640px) 80vw, 260px"

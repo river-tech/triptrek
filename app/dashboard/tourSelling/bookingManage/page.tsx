@@ -19,106 +19,17 @@ import Image from "next/image";
 import BackButton from "@/app/common/BackButton";
 import { EBookingStatus } from "@/app/enum/BookingStatus";
 import DeleteModal from "@/app/Modal/DeleteModal";
+import useProfile from "@/hooks/useProfile";
+import { ISellerOrders } from "@/model/booking";
 
-export type Booking = {
-  id: string;
-  tourId: string;
-  tourName: string;
-  tourImage: string;
-  customerName: string;
-  customerPhone: string;
-  customerEmail: string;
-  tourStartDate: string;
-  tourEndDate: string;
-  destination: string;
-  price: number;
-  status: EBookingStatus;
-};
 
-const mockBookings: Booking[] = [
-  {
-    id: "1",
-    tourId: "1",
-    tourName: "Khám phá Đà Lạt 3 ngày 2 đêm",
-    tourImage: "/mountain.jpg",
-    customerName: "Nguyễn Văn A",
-    customerPhone: "0123456789",
-    customerEmail: "nguyenvana@gmail.com",
-
-    tourStartDate: "2024-02-01",
-    tourEndDate: "2024-02-03",
-    destination: "Đà Lạt",
-    price: 2500000,
-    status: EBookingStatus.PENDING,
-  },
-  {
-    id: "2",
-    tourId: "2",
-    tourName: "Du lịch Hạ Long 2 ngày 1 đêm",
-    tourImage: "/mountain.jpg",
-    customerName: "Trần Thị B",
-    customerPhone: "0987654321",
-    customerEmail: "tranthib@gmail.com",
-
-    tourStartDate: "2024-02-05",
-    tourEndDate: "2024-02-06",
-    destination: "Hạ Long",
-    price: 1800000,
-    status: EBookingStatus.SUCCESS,
-  },
-  {
-    id: "3",
-    tourId: "3",
-    tourName: "Tham quan Hội An 1 ngày",
-    tourImage: "/mountain.jpg",
-    customerName: "Lê Văn C",
-    customerPhone: "0369852147",
-    customerEmail: "levanc@gmail.com",
-
-    tourStartDate: "2024-02-10",
-    tourEndDate: "2024-02-10",
-    destination: "Hội An",
-    price: 800000,
-    status: EBookingStatus.PENDING,
-  },
-  {
-    id: "4",
-    tourId: "4",
-    tourName: "Nghỉ dưỡng Phú Quốc 4 ngày 3 đêm",
-    tourImage: "/mountain.jpg",
-    customerName: "Phạm Thị D",
-    customerPhone: "0741258963",
-    customerEmail: "phamthid@gmail.com",
-
-    tourStartDate: "2024-02-15",
-    tourEndDate: "2024-02-18",
-    destination: "Phú Quốc",
-    price: 4500000,
-    status: EBookingStatus.DENY,
-  },
-  {
-    id: "5",
-    tourId: "5",
-    tourName: "Khám phá Sapa 3 ngày 2 đêm",
-    tourImage: "/mountain.jpg",
-    customerName: "Hoàng Văn E",
-    customerPhone: "0852369741",
-    customerEmail: "hoangvane@gmail.com",
-
-    tourStartDate: "2024-02-20",
-    tourEndDate: "2024-02-22",
-    destination: "Sapa",
-    price: 2200000,
-    status: EBookingStatus.SUCCESS,
-  },
-];
 
 const currency = (n: number) =>
   n.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 const formatDate = (iso: string) => new Date(iso).toLocaleDateString("vi-VN");
 
 export default function BookingManagementPage() {
-  const [bookings, setBookings] = useState<Booking[]>(mockBookings);
+  const [bookings, setBookings] = useState<ISellerOrders[]>([]);
   const [activeTab, setActiveTab] = useState<
     "all" | EBookingStatus.PENDING | EBookingStatus.SUCCESS | EBookingStatus.DENY
   >("all");
@@ -129,15 +40,25 @@ export default function BookingManagementPage() {
     "single" | "multiple" | null
   >(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
+  const [loading, setLoading] = useState(false);
+  const {changeBookingStatus, showSellerOrders, deleteSellerOrder} = useProfile();
   const filteredBookings = bookings.filter((booking) => {
     const matchesTab = activeTab === "all" || booking.status === activeTab;
-    const matchesSearch = booking.tourName
+    const matchesSearch = booking.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
 
     return matchesTab && matchesSearch;
   });
+
+  const fetchBookings = async () => {
+    const res = await showSellerOrders()
+    setBookings(res as unknown as ISellerOrders[])
+  }
+
+  useEffect(() => {
+    fetchBookings()
+  }, [])
 
   const getStatusColor = (status: EBookingStatus) => {
     switch (status) {
@@ -165,22 +86,27 @@ export default function BookingManagementPage() {
     }
   };
 
-  const handleApprove = (id: string) => {
-    setBookings((prev) =>
-      prev.map((booking) =>
-        booking.id === id
-          ? { ...booking, status: EBookingStatus.SUCCESS }
-          : booking
-      )
-    );
+  const handleApprove = async (id: string) => {
+    const res = await changeBookingStatus({id, status: EBookingStatus.SUCCESS});
+    if(res){
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking.id === Number(id) ? { ...booking, status: EBookingStatus.SUCCESS } : booking
+        )
+      );
+    }
+    
   };
 
-  const handleDeny = (id: string) => {
-    setBookings((prev) =>
-      prev.map((booking) =>
-        booking.id === id ? { ...booking, status: EBookingStatus.DENY } : booking
-      )
-    );
+  const handleDeny = async (id: string) => {
+  const res = await changeBookingStatus({id, status: EBookingStatus.DENY});
+    if(res){
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking.id === Number(id) ? { ...booking, status: EBookingStatus.DENY } : booking
+        )
+      );
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -193,7 +119,7 @@ export default function BookingManagementPage() {
     if (selectedBookings.length === filteredBookings.length) {
       setSelectedBookings([]);
     } else {
-      setSelectedBookings(filteredBookings.map((booking) => booking.id));
+      setSelectedBookings(filteredBookings.map((booking) => booking.id.toString()));
     }
   };
 
@@ -210,12 +136,14 @@ export default function BookingManagementPage() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete =async() => {
     if (deleteTarget === "single" && deleteId) {
-      setBookings((prev) => prev.filter((booking) => booking.id !== deleteId));
+      await deleteSellerOrder({bookingIds: [deleteId]});
+      setBookings((prev) => prev.filter((booking) => booking.id !== Number(deleteId)));
     } else if (deleteTarget === "multiple") {
+      await deleteSellerOrder({bookingIds: selectedBookings});
       setBookings((prev) =>
-        prev.filter((booking) => !selectedBookings.includes(booking.id))
+        prev.filter((booking) => !selectedBookings.includes(booking.id.toString()))
       );
       setSelectedBookings([]);
     }
@@ -363,16 +291,16 @@ export default function BookingManagementPage() {
                   {/* Checkbox */}
                   <input
                     type="checkbox"
-                    checked={selectedBookings.includes(booking.id)}
-                    onChange={() => handleSelectBooking(booking.id)}
+                    checked={selectedBookings.includes(booking.id.toString())}
+                    onChange={() => handleSelectBooking(booking.id.toString())}
                     className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500 mt-1"
                   />
 
                   {/* Tour Image */}
                   <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                     <Image
-                      src={booking.tourImage}
-                      alt={booking.tourName}
+                      src={booking.images}
+                      alt={booking.name}
                       width={80}
                       height={80}
                       className="w-full h-full object-cover"
@@ -384,7 +312,7 @@ export default function BookingManagementPage() {
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                          {booking.tourName}
+                          {booking.name}
                         </h3>
                         <div className="flex items-center gap-4 text-sm text-gray-600">
                           <span className="flex items-center gap-1">
@@ -393,8 +321,8 @@ export default function BookingManagementPage() {
                           </span>
                           <span className="flex items-center gap-1">
                             <FontAwesomeIcon icon={faCalendar} />
-                            {formatDate(booking.tourStartDate)} -{" "}
-                            {formatDate(booking.tourEndDate)}
+                            {formatDate(booking.startDate)} -{" "}
+                            {formatDate(booking.endDate)}
                           </span>
                         </div>
                       </div>
@@ -420,7 +348,7 @@ export default function BookingManagementPage() {
                           className="text-sky-500"
                         />
                         <span className="text-gray-700">
-                          {booking.customerName}
+                          {booking.userName}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
@@ -429,7 +357,7 @@ export default function BookingManagementPage() {
                           className="text-sky-500"
                         />
                         <span className="text-gray-700">
-                          {booking.customerPhone}
+                          {booking.phone}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
@@ -438,7 +366,7 @@ export default function BookingManagementPage() {
                           className="text-sky-500"
                         />
                         <span className="text-gray-700">
-                          {booking.customerEmail}
+                          {booking.email}
                         </span>
                       </div>
                     </div>
@@ -450,14 +378,14 @@ export default function BookingManagementPage() {
                       {booking.status === EBookingStatus.PENDING && (
                         <>
                           <button
-                            onClick={() => handleApprove(booking.id)}
+                            onClick={() => handleApprove(booking.id.toString())}
                             className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
                           >
                             <FontAwesomeIcon icon={faCheck} />
                             Duyệt
                           </button>
                           <button
-                            onClick={() => handleDeny(booking.id)}
+                            onClick={() => handleDeny(booking.id.toString())}
                             className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm"
                           >
                             <FontAwesomeIcon icon={faTimes} />
@@ -466,7 +394,7 @@ export default function BookingManagementPage() {
                         </>
                       )}
                       <button
-                        onClick={() => handleDelete(booking.id)}
+                        onClick={() => handleDelete(booking.id.toString())}
                         className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
                       >
                         <FontAwesomeIcon icon={faTrash} />
@@ -483,7 +411,7 @@ export default function BookingManagementPage() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <DeleteModal setShowDeleteModal={setShowDeleteModal} handleDeleteSelected={confirmDelete} title="Xác nhận xoá booking" description={deleteTarget === "single" ? "Bạn có chắc chắn muốn xóa booking này không?" : `Bạn có chắc chắn muốn xóa ${selectedBookings.length} booking đã chọn không?`} />
+        <DeleteModal loading={loading} setShowDeleteModal={setShowDeleteModal} handleDeleteSelected={confirmDelete} title="Xác nhận xoá booking" description={deleteTarget === "single" ? "Bạn có chắc chắn muốn xóa booking này không?" : `Bạn có chắc chắn muốn xóa ${selectedBookings.length} booking đã chọn không?`} />
       )}
     </div>
   );

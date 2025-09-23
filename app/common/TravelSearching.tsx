@@ -2,23 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCalendarDays, faChevronDown, faMagnifyingGlass, faMoneyBillWave } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faMagnifyingGlass, faMoneyBillWave } from "@fortawesome/free-solid-svg-icons";
 import useData from "@/hooks/useData";
 import { IFamousDestination } from "@/model/destination";
+import { ITourPopular } from "@/model/tour";
 
-export type PriceOption = "any" | "UNDER_1M" | "FROM_1_TO_3M" | "ABOVE_3M";
 
-export default function TravelSearching({}) {
+export type PriceOption = "any" | "UNDER_1M" | "FROM_1M_TO_3M" | "ABOVE_3M";
+
+export default function TravelSearching({handleResult}: {handleResult: (tours: ITourPopular[]) => void}) {
   type destinationType = {
     id: number;
     name: string;
   };
+
+  
   const [destinations, setDestinations] = useState("");
   const [destinationId, setDestinationId] = useState<number>(0);
   const [price, setPrice] = useState<PriceOption>("any");
   const { getAllDestinations, searchTour } = useData();
   const [destinationlist, setDestinationlist] = useState<destinationType[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+ 
 
   useEffect(() => {
     const fetchDestinations = async () => {
@@ -31,7 +36,7 @@ export default function TravelSearching({}) {
   const priceLabelMap: Record<PriceOption, string> = {
     any: "Giá",
     "UNDER_1M": "Dưới 1 triệu",
-    "FROM_1_TO_3M": "1 - 3 triệu",
+    "FROM_1M_TO_3M": "1 - 3 triệu",
     "ABOVE_3M": "Trên 3 triệu",
   };
 
@@ -82,6 +87,7 @@ export default function TravelSearching({}) {
   const handleSearch = async() => {
     const res = await searchTour({destination: destinationId.toString(), price: price});
     console.log(res);
+    handleResult(res || []);
   };
 
   return (
@@ -151,7 +157,7 @@ export default function TravelSearching({}) {
             {/* Nút tìm kiếm */}
             <div className="w-full sm:w-auto flex justify-end">
               <button
-                onClick={handleSearch}
+                onClick={() => handleSearch()}
                 className="h-14 px-10 rounded-full bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-600 hover:to-cyan-500 active:from-sky-700 active:to-cyan-600 text-white font-bold shadow-lg text-lg flex items-center gap-2 transition-all duration-200"
               >
                 <FontAwesomeIcon icon={faMagnifyingGlass} className="text-white text-lg" />

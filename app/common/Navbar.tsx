@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useImmer } from "use-immer";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuilding, faTicket, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faBuilding, faTicket } from "@fortawesome/free-solid-svg-icons";
 import useAuth from "@/hooks/useAuth";
 import useProfile from "@/hooks/useProfile";
 

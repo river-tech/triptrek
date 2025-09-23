@@ -1,90 +1,52 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faClock, faEdit, faEye, faMagnifyingGlass, faMapMarkerAlt, faPause, faPlay, faPlus, faTag, faUsers } from '@fortawesome/free-solid-svg-icons'
+import { faEdit, faMagnifyingGlass, faMapMarkerAlt, faPlus, faTag } from '@fortawesome/free-solid-svg-icons'
 import BackButton from '@/app/common/BackButton'
 import { useRouter } from 'next/navigation'
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import useProfile from '@/hooks/useProfile'
+import { ITourPopular } from '@/model/tour'
 
- interface SellingTour {
-  id: number
-  name: string
-  avatar: string
-  location: string
-  dateStart: string
-  dateEnd: string
-  guideName: string
-  description: string
-  image: string
-  price: number
-}
-
+ 
 const currency = (n: number) => n.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })
-const formatDate = (iso: string) => new Date(iso).toLocaleDateString('vi-VN')
 
-const mockTours: SellingTour[] = [
-  {
-    id: 1,
-    name: 'Đà Nẵng 5N4Đ – Biển & Ẩm thực',
-    avatar: '/About1.jpg',
-    location: 'Đà Nẵng, Việt Nam',
-    dateStart: '2025-07-21',
-    dateEnd: '2025-07-25',
-    guideName: 'Nguyễn Văn A',
-    description: 'Khám phá biển và ẩm thực Đà Nẵng trong 5 ngày 4 đêm.',
-    image: '/About1.jpg',
-    price: 3590000,
-  },
-  {
-    id: 2,
-    name: 'Hội An Cổ Kính 3N2Đ – Phố đèn lồng',
-    avatar: '/About2.jpg',
-    location: 'Hội An, Quảng Nam',
-    dateStart: '2025-08-02',
-    dateEnd: '2025-08-04',
-    guideName: 'Trần Thị B',
-    description: 'Trải nghiệm phố cổ Hội An và đèn lồng rực rỡ.',
-    image: '/About2.jpg',
-    price: 2490000,
-  },
-  {
-    id: 3,
-    name: 'Đà Lạt Mộng Mơ 4N3Đ – Săn mây',
-    avatar: '/About3.jpg',
-    location: 'Đà Lạt, Lâm Đồng',
-    dateStart: '2025-08-10',
-    dateEnd: '2025-08-13',
-    guideName: 'Lê Văn C',
-    description: 'Săn mây và khám phá Đà Lạt mộng mơ trong 4 ngày.',
-    image: '/About3.jpg',
-    price: 3190000,
-  },
-]
+
 
 const Page = () => {
 
   const [query, setQuery] = useState('')
-  const [tours, setTours] = useState<SellingTour[]>(mockTours)
-  const [loading, setLoading] = useState(false)
-  const [isDeleteTour, setIsDeleteTour] = useState(false)
+  const [tours, setTours] = useState<ITourPopular[]>([])
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [idDeleteTour, setIdDeleteTour] = useState(0)
   const router = useRouter()
+  const {getMyTourCreated, deleteMyTourCreated} = useProfile()
+const fetchCreatedTours = async () => {
+  const res = await getMyTourCreated()
+  console.log(`res`, res)
+  setTours(res)
+}
+useEffect(() => {
+  fetchCreatedTours()
+},[])
+
 
  
 
-  const handleDeleteTour = (id: number) => {
+  const handleDeleteTour = async (id: number) => {
     setShowDeleteModal(true)
     setIdDeleteTour(id)
     
   }
-  const confirmDeleteTour = () => {
-    const newTours = tours.filter(t => t.id !== idDeleteTour)
-    setTours(newTours)
-    setIdDeleteTour(0)
-    setShowDeleteModal(false)
+  const confirmDeleteTour = async () => {
+    const res = await deleteMyTourCreated({id: idDeleteTour.toString()})
+    if(res){
+      setTours(tours.filter(t => t.id !== idDeleteTour))
+      setIdDeleteTour(0)
+      setShowDeleteModal(false)
+    }
   }
 
   return (
@@ -120,43 +82,46 @@ const Page = () => {
 
         {/* List */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {tours.map(t => (
-            <div key={t.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="relative h-44">
-                {/* Sử dụng các trường đúng với interface SellingTour */}
-                <Image src={t.image} alt={t.name} fill className="object-cover" />
-                
-              </div>
-              <div className="p-5">
-                <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">{t.name}</h3>
-                <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-700">
-                  <span className="inline-flex items-center gap-2"><FontAwesomeIcon className="text-sky-500" icon={faMapMarkerAlt} /> {t.location}</span>
+        
+          {tours?.length > 0 ? (
+           
+            tours?.map(t => (
+              <div key={t.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                <div className="relative h-44">
+                  {/* Sử dụng các trường đúng với interface SellingTour */}
+                  <Image src={t.images[0]} alt={t.name} fill className="object-cover" />
                   
                 </div>
-
-                <div className="mt-3 flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 text-sky-600 font-semibold">
-                    <FontAwesomeIcon icon={faTag} /> {currency(t.price)}+
+                <div className="p-5">
+                  <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">{t.name}</h3>
+                  <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-700">
+                    <span className="inline-flex items-center gap-2"><FontAwesomeIcon className="text-sky-500" icon={faMapMarkerAlt} /> {t.destination}</span>
+                    
                   </div>
-                
-                </div>
-
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  <button onClick={()=>handleDeleteTour(t.id)} className="px-3  hover:text-red-600 cursor-pointer py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-2 text-gray-700">
-                    <FontAwesomeIcon icon={faTrash} /> Xoá
-                  </button>
-                  <button onClick={()=>router.push(`/dashboard/tourSelling/edit/${t.id}`)} className="px-3  hover:text-sky-600 cursor-pointer py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-2 text-gray-700">
-                    <FontAwesomeIcon icon={faEdit} /> Sửa
-                  </button>
+  
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="inline-flex items-center gap-2 text-sky-600 font-semibold">
+                        <FontAwesomeIcon icon={faTag} /> {currency(t.price)}
+                    </div>
                   
+                  </div>
+  
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    <button onClick={()=>handleDeleteTour(t.id)} className="px-3  hover:text-red-600 cursor-pointer py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-2 text-gray-700">
+                      <FontAwesomeIcon icon={faTrash} /> Xoá
+                    </button>
+                    <button onClick={()=>router.push(`/dashboard/tourSelling/edit/${t.id}`)} className="px-3  hover:text-sky-600 cursor-pointer py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-2 text-gray-700">
+                      <FontAwesomeIcon icon={faEdit} /> Sửa
+                    </button>
+                    
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-          {tours.length === 0 && (
+            ))
+          ):(
             <div className="col-span-full text-center text-gray-600 bg-white rounded-xl border border-dashed border-gray-300 py-16">
-              Chưa có tour nào phù hợp. Hãy điều chỉnh bộ lọc hoặc tạo tour mới.
-            </div>
+            Chưa có tour nào phù hợp. Hãy điều chỉnh bộ lọc hoặc tạo tour mới.
+          </div>
           )}
         </div>
 

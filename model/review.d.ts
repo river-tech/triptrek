@@ -1,11 +1,11 @@
 import { IUserReview } from "./user";
 export interface IReview {
     id: number;
-    rating: number;
+    rating: string;
     comment: string;
     user : IUserReview;
     createdAt: string;
-    isMyReview: boolean;
+    isMyComment: boolean;
   }
 
 export interface IShowReview {

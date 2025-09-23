@@ -1,16 +1,22 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSpinner } from '@fortawesome/free-solid-svg-icons'
 import React from 'react'
 
 const DeleteModal = ({
     setShowDeleteModal,
     handleDeleteSelected,
+    loading,
     title,
     description
 }: {
     setShowDeleteModal: (show: boolean) => void
     handleDeleteSelected: () => void
+    loading: boolean
     title: string
     description: string
 }) => {
+
+  
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
     <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fadeIn">
@@ -40,12 +46,16 @@ const DeleteModal = ({
         >
           Hủy
         </button>
-        <button
-          className="px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 font-semibold shadow transition"
-          onClick={handleDeleteSelected}
-        >
-          Xoá
-        </button>
+        {loading ? (
+          <button className="px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 font-semibold shadow transition">
+            <FontAwesomeIcon icon={faSpinner} spin />
+          </button>
+        ) : (
+          <button className="px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 font-semibold shadow transition" onClick={handleDeleteSelected}>
+            Xoá
+          </button>
+        )}
+        
       </div>
     </div>
   </div>

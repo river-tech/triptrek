@@ -8,3 +8,28 @@ export interface IBooking {
     end_date: string;
     price: number;
 }
+
+export interface IMyBookings {
+    id: number;
+   name: string;
+    destination: string;
+    startDate: string;
+    endDate: string;
+    price: number;
+    images: string[];
+    status: EBookingStatus;
+}
+
+export interface ISellerOrders {
+    id: number;
+    images: string;
+    name: string;
+    price: number;
+    destination: string;
+    startDate: string;
+    endDate: string;
+    userName: string;
+    phone: string;
+    email: string;
+    status: EBookingStatus;
+}

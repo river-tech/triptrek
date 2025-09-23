@@ -7,3 +7,9 @@ export interface IFood {
     destination_id: number;
 }
 
+export interface IFoodByDes {
+    id: number;
+    name: string;
+    images: string[];
+    description: string;
+}

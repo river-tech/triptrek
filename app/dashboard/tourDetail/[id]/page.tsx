@@ -37,6 +37,8 @@ const TourDetailPage = ({
     id: string;
   }>;
 }) => {
+
+  
   const { id } = use(params);
   const { getTourById } = useData();
   const { getProfile } = useProfile();
@@ -53,6 +55,25 @@ const TourDetailPage = ({
   const [editRating, setEditRating] = useState(0);
   const [editHover, setEditHover] = useState(0);
   const router = useRouter();
+  const fetchTour = async () => {
+    setLoading(true);
+    const tour = await getTourById(id);
+    setTour(tour );
+    setLoading(false);
+    const user = await getProfile();
+    // Default start/end date: today
+    const today = new Date();
+    const isoToday = today.toISOString().slice(0, 10);
+    setMockBookingData({
+      name: user?.username,
+      phone: user?.phone,
+      email: user?.email,
+      startDate: isoToday,
+      endDate: isoToday,
+    });
+    setBookingStartDate(isoToday);
+    setBookingEndDate(isoToday);
+  };
 
   // State for booking form
   const [mockBookingData, setMockBookingData] = useState({
@@ -67,27 +88,9 @@ const TourDetailPage = ({
   const [bookingStartDate, setBookingStartDate] = useState("");
   const [bookingEndDate, setBookingEndDate] = useState("");
   const [dateError, setDateError] = useState("");
+  
 
   useEffect(() => {
-    const fetchTour = async () => {
-      setLoading(true);
-      const tour = await getTourById(id);
-      setTour(tour );
-      setLoading(false);
-      const user = await getProfile();
-      // Default start/end date: today
-      const today = new Date();
-      const isoToday = today.toISOString().slice(0, 10);
-      setMockBookingData({
-        name: user?.username,
-        phone: user?.phone,
-        email: user?.email,
-        startDate: isoToday,
-        endDate: isoToday,
-      });
-      setBookingStartDate(isoToday);
-      setBookingEndDate(isoToday);
-    };
     fetchTour();
   }, [id]);
 
@@ -103,17 +106,17 @@ const TourDetailPage = ({
   }, [bookingStartDate, bookingEndDate]);
 
   const handleBooking = async () => {
-    // Validate before booking
     if (bookingStartDate > bookingEndDate) {
       setDateError("Ngày bắt đầu không được lớn hơn ngày kết thúc.");
       return;
     }
     setBookingLoading(true);
+    console.log(`bookingStartDate`, bookingStartDate)
+    console.log(`bookingEndDate`, bookingEndDate)
     await bookingTour({tourId: id, startDate: bookingStartDate, endDate: bookingEndDate});
     setBookingLoading(false);
-    // Mock booking submission
     setShowBookingForm(false);
-    router.push(`/dashboard/tourStore/?reset=true`);
+    router.push(`/`);
   };
 
   if (loading) {
@@ -136,20 +139,22 @@ const TourDetailPage = ({
   }
 
   const renderStar = (rating: number) => {
-    return Array.from({ length: rating }, (_, index) => (
+    return Array.from({ length: rating-1 }, (_, index) => (
       <FontAwesomeIcon key={index} icon={faStar} className="text-yellow-500" />
     ));
   };
 
   const handleDeleteReview = async(id: number) => {
     await deleteReview({id: id.toString()})
+    fetchTour()
   };
 
   const handleUpdateReview = async(id: number) => {
-  await updateReview({id: id.toString(), comment: editComment, rating: editRating})
+  await updateReview({id: id.toString(), rating: editRating, comment: editComment})
     setEditComment("");
     setEditRating(0);
     setEditId(0);
+    fetchTour()
   };
 
   return (
@@ -172,7 +177,7 @@ const TourDetailPage = ({
               </span>
               <span className="flex items-center gap-1">
                 <FontAwesomeIcon icon={faUser} />
-                {tour.guideName}
+                {tour.guide_name}
               </span>
             </div>
           </div>
@@ -259,7 +264,7 @@ const TourDetailPage = ({
                   </h3>
                 </div>
                 <div className="text-gray-700">
-                  <span className="font-medium">{tour.guideName}</span>
+                  <span className="font-medium">{tour.guide_name}</span>
                 </div>
               </div>
             </div>
@@ -349,18 +354,18 @@ const TourDetailPage = ({
                               icon={faStar}
                               className="text-yellow-500"
                             />
-                            {renderStar(review.rating)}
+                            {renderStar(Number(review.rating))}
                           </div>
                           <span className="text-gray-500 text-sm">
-                            {review.createdAt}
+                            {new Date(review.createdAt).toLocaleDateString("vi-VN")}
                           </span>
-                          {review.isMyReview && (
+                          {review.isMyComment && (
                             <div className="flex items-center gap-2 mt-2">
                               <button
                                 onClick={() => {
                                   setEditId(review.id);
                                   setEditComment(review.comment);
-                                  setEditRating(review.rating);
+                                  setEditRating(Number(review.rating));
                                 }}
                                 className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium border border-blue-200"
                               >
@@ -391,7 +396,7 @@ const TourDetailPage = ({
                   ))}
               </div>
             </div>
-            <div>{<RatingForm id={id} />}</div>
+            <div>{<RatingForm id={id} onSubmitted={fetchTour} />}</div>
           </div>
 
           {/* Right Column - Booking & Price */}
@@ -417,7 +422,7 @@ const TourDetailPage = ({
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600 ">Hướng dẫn viên:</span>
-                  <span className="font-medium">{tour.guideName}</span>
+                  <span className="font-medium">{tour.guide_name}</span>
                 </div>
               </div>
 
@@ -547,6 +552,7 @@ const TourDetailPage = ({
             handleDeleteReview(deleteId);
             setShowDeleteModal(false);
           }}
+          loading={loading}
           title="Xóa đánh giá"
           description="Bạn có chắc chắn muốn xóa đánh giá này không?"
         />
@@ -554,6 +560,6 @@ const TourDetailPage = ({
     </div>
    
   );
-};
+}
 
 export default TourDetailPage;

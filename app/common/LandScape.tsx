@@ -1,9 +1,6 @@
 "use client";
 
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ExpandSearch from "./SearchBar";
-import { useEffect } from "react";
 
 
 export default function LandScape() {

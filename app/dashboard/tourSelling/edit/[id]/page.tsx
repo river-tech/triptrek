@@ -7,42 +7,60 @@ import { faCamera, faMapMarkerAlt, faUser, faCalendar, faTag, faFileText, faUplo
 import BackButton from '@/app/common/BackButton'
 import { useRouter, useParams } from 'next/navigation'
 import useData from '@/hooks/useData'
-import { ITourDetail } from '@/model/tour'
+import { ITourDetail, ITourDetailEdit } from '@/model/tour'
+import useProfile from '@/hooks/useProfile'
 
-const mockDestinations = [
-  { id: 1, name: 'Đà Nẵng, Việt Nam' },
-  { id: 2, name: 'Hội An, Quảng Nam' },
-  { id: 3, name: 'Đà Lạt, Lâm Đồng' },
-  { id: 4, name: 'Phú Quốc, Kiên Giang' },
-  { id: 5, name: 'Hạ Long, Quảng Ninh' },
-  { id: 6, name: 'Huế, Thừa Thiên Huế' },
-]
 
-const EditTour = () => {
+
+const EditTour = ({
+  id
+}:{
+  id: string
+}) => {
+  type destinationType = {
+    id: number
+    name: string
+  }
   const router = useRouter()
-  const params = useParams()
-  const tourId = params.id
-  const { getTourById } = useData()
+  const {id : tourId} = useParams()
+  const { getTourCreateDetail, editMyTourCreated } = useProfile()
+  const { getAllDestinations } = useData()
   const [imagePreview, setImagePreview] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState("")
   const [loading, setLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [tourData, setTourData] = useState<ITourDetail | null>(null)
+  const [tourData, setTourData] = useState<ITourDetailEdit | null>(null)
+  const [destinations, setDestinations] = useState<destinationType[]>([])
+  const [loadingImages, setLoadingImages] = useState<boolean[]>([
+    false,
+    false,
+    false,
+    false,
+  ])
+  const fetchTourEdit = async () => {
+    setLoading(true)
+    const tourData = await getTourCreateDetail({id: tourId as string})
+    setTourData(tourData as ITourDetailEdit)
+    setImagePreview(tourData?.images || [])
+    setLoading(false)
+    console.log(`tourData`, tourData)
+  }
+
+  const fetchDestinations = async () => {
+    const destinations = await getAllDestinations()
+    setDestinations(destinations as destinationType[])
+  }
+
 
   useEffect(() => {
-    const fetchTourData = async () => {
-      setLoading(true)
-      const tourData = await getTourById(tourId as string)
-      setTourData(tourData as ITourDetail)
-      setImagePreview(tourData?.images || [])
-      setLoading(false)
-    }
-    fetchTourData()
+    fetchTourEdit()
+    fetchDestinations()
+    // fetchTourData()
   }, [])
 
   // Hàm cập nhật giá trị cho các trường của ITourDetail
-  const handleInputChange = (field: keyof ITourDetail, value: any) => {
+  const handleInputChange = (field: keyof ITourDetailEdit, value: any) => {
     setTourData(prev => {
       if (!prev) return prev
       return { ...prev, [field]: value }
@@ -51,22 +69,46 @@ const EditTour = () => {
   }
 
   // Xử lý upload ảnh
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, idx: number) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, idx: number) => {
     const file = event.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const result = e.target?.result as string
-        const newImagePreview = [...imagePreview]
-        newImagePreview[idx] = result
-        setImagePreview(newImagePreview)
-        setTourData(prev => {
-          if (!prev) return prev
-          return { ...prev, images: newImagePreview }
-        })
+   if(!file || idx === null) return
+   setLoadingImages(prev => {
+    const arr = [...prev];
+    arr[idx] = true;
+    return arr;
+   })
+   const formDataUpload = new FormData();
+   formDataUpload.append("file", file);
+   formDataUpload.append("upload_preset", "demo_frame_print"); // đổi bằng preset của bạn
+
+   try {
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUD_NAME}/image/upload`,
+      {
+        method: "POST",
+        body: formDataUpload,
       }
-      reader.readAsDataURL(file)
-    }
+    );
+    const data = await res.json();
+    setImagePreview(prev => {
+      const arr = [...prev];
+      arr[idx] = data.url;
+      return arr;
+    })
+    setTourData(prev => {
+      if (!prev) return prev
+      return { ...prev, images: [...prev.images, data.url] }
+    })
+   } catch (error) {
+    console.log(error)
+   } finally {
+    setLoadingImages(prev => {
+      const arr = [...prev];
+      arr[idx] = false;
+      return arr;
+    })
+   }
+
   }
 
   const triggerFileInput = (idx: number) => {
@@ -81,7 +123,11 @@ const EditTour = () => {
     setImagePreview(newImagePreview)
     setTourData(prev => {
       if (!prev) return prev
-      return { ...prev, image: newImagePreview }
+      return { ...prev, images: newImagePreview }
+    })
+    setTourData(prev => {
+      if (!prev) return prev
+      return { ...prev, images: newImagePreview }
     })
   }
 
@@ -126,21 +172,20 @@ const EditTour = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateForm()) return
-
+    console.log(`tourData`, JSON.stringify(tourData))
     setSubmitting(true)
-    try {
-      // Mock API call - replace with actual update API
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      alert('Cập nhật tour thành công!')
-      router.push('/dashboard/tourSelling')
-    } catch (error) {
-      setErrors('Có lỗi xảy ra khi cập nhật tour')
-    } finally {
-      setSubmitting(false)
-    }
+   await editMyTourCreated({id: tourId as string, data: tourData as ITourDetailEdit})
+   setSubmitting(false)
   }
 
   const currency = (n: number) => n.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })
+  const toInputDate = (date: string) => {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
   if (loading) {
     return (
@@ -199,7 +244,7 @@ const EditTour = () => {
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 >
                   <option value="">Chọn điểm đến</option>
-                  {mockDestinations.map(dest => (
+                  {destinations.map(dest => (
                     <option key={dest.id} value={dest.id}>{dest.name}</option>
                   ))}
                 </select>
@@ -253,7 +298,7 @@ const EditTour = () => {
                     <label className="block text-xs text-gray-500 mb-1">Ngày bắt đầu</label>
                     <input
                       type="date"
-                      value={tourData?.startDate || ''}
+                      value={tourData?.startDate ? toInputDate(tourData.startDate) : ''}
                       onChange={(e) => handleInputChange('startDate', e.target.value)}
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     />
@@ -262,7 +307,7 @@ const EditTour = () => {
                     <label className="block text-xs text-gray-500 mb-1">Ngày kết thúc</label>
                     <input
                       type="date"
-                      value={tourData?.endDate || ''}
+                      value={tourData?.endDate ? toInputDate(tourData.endDate) : ''}
                       onChange={(e) => handleInputChange('endDate', e.target.value)}
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     />

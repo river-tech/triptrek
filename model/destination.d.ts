@@ -12,3 +12,11 @@ export interface IFamousDestination {
    imageURL: string;
 }
 
+export interface IDestinationDetail {
+    id: number;
+    name: string;
+    description: string;
+    imageURL: string;
+    galleryURL: string[];
+}
+

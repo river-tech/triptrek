@@ -1,10 +1,11 @@
 import { useToast } from "@/app/Toast/ToastContext";
-import { IFamousDestination } from "@/model/destination";
+import { IDestinationDetail, IFamousDestination } from "@/model/destination";
 import useAuth from "./useAuth";
-import { ITourDetail } from "@/model/tour";
+import { ITourByDes, ITourDetail, ITourPopular } from "@/model/tour";
+import { IFoodByDes } from "@/model/food";
 
 export default function useData() {
-    const { showError, showSuccess } = useToast();
+    const { showError } = useToast();
     const { getToken } = useAuth();
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -18,14 +19,22 @@ export default function useData() {
             return undefined;
         }
     }
-
-    const getPopularTours = async () => {
+    const getPopularTours = async () : Promise<ITourPopular[] | null> => {
+      try {
         const response = await fetch(`${apiUrl}/tours/popular`);
         const data = await response.json();
-        return data;
+        if(response.ok){
+          return data;
+        }
+        else{
+          showError(data?.message);
+          return null;
+        }
+      } catch (error) {
+        console.log(error);
+        return null;
+      }
     }
-
-    
 
     const getTourById = async (id: string): Promise<ITourDetail | null> => {
         try {
@@ -53,10 +62,15 @@ export default function useData() {
     
     const searchTour = async ({destination, price}:{destination:string, price:string}) => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const response = await fetch(`${apiUrl}/tours/search-tour?destination=${destination}&price=${price}`);
             const data = await response.json();
-            return data;
+            if(response.ok){
+                return data;
+            }
+            else{
+                showError(data?.message);
+                return null;
+            }
         } catch (error) {
             showError("Tìm kiếm thất bại, vui lòng thử lại!");
             return null;
@@ -89,13 +103,60 @@ export default function useData() {
         }
     }
 
-    const getDestinationById = async (id: string) => {
+    const getDestinationById = async (id: string):Promise<IDestinationDetail | null> => {
         try {
             const response = await fetch(`${apiUrl}/destination/${id}`);
             const data = await response.json();
-            return data;
+            if(response.ok){
+                // console.log("data", data);
+                return data;
+            }
+            else{
+                showError(data?.message);
+                return null;
+            }
+         
         } catch (error) {
             showError("Lấy thông tin điểm đến thất bại, vui lòng thử lại!");
+            console.log(error);
+            return null;
+        }
+    }
+
+    const getTourByDestination = async (id: string):Promise<ITourByDes[] | null> => {
+        try {
+            const response = await fetch(`${apiUrl}/tours/destination/${id}`);
+            const data = await response.json();
+            if(response.ok){
+                console.log("data", data);
+                return data;
+            }
+            else{
+                showError(data?.message);
+                return null;
+            }
+        }
+        catch (error) {
+            showError("Lấy danh sách tour thất bại, vui lòng thử lại!");
+            console.log(error);
+            return null;
+        }
+    }
+
+    const getFoodByDestination = async (id: string):Promise<IFoodByDes[] | null> => {
+        try {
+            const response = await fetch(`${apiUrl}/foods/destination/${id}`);
+            const data = await response.json();
+            if(response.ok){
+                return data;
+            }
+            else{
+                showError(data?.message);
+                return null;
+            }
+        }
+        catch (error) {
+            showError("Lấy danh sách món ăn thất bại, vui lòng thử lại!");
             console.log(error);
             return null;
         }
@@ -108,5 +169,7 @@ export default function useData() {
         getTourById,
         getAllDestinations,
         getDestinationById,
+        getTourByDestination,
+        getFoodByDestination,
     };
 }

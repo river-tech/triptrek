@@ -29,3 +29,10 @@ export interface IResetPassword {
 export interface IRequestOTP {
     email: string;
 }
+
+export interface IUserAdmin{
+    id: number;
+    username: string;
+    email: string;
+    avatar: string;
+}

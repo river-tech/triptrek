@@ -10,7 +10,6 @@ export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isShowPassword, setIsShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const { register } = useAuth();
   const router = useRouter();
 
@@ -20,9 +19,7 @@ export default function RegisterPage() {
     if(res){
       router.push("/authen/signIn");
     }
-    else{
-      setError("Đăng ký thất bại");
-    }
+    
   };
 
   return (

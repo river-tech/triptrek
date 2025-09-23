@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEye, faEyeSlash, faLock, faShieldAlt, faCircleCheck, faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faEye, faEyeSlash, faLock, faShieldAlt, faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import useProfile from '@/hooks/useProfile'

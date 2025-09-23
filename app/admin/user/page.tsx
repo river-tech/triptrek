@@ -2,50 +2,28 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
+import { IUserAdmin } from "@/model/user";
+import useAdmin from "@/hooks/useAdmin";
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  avatar: string;
-  created_at: string;
-}
+
 
 export default function AdminUserPage() {
-  const [users, setUsers] = useState<User[]>([]);
+  const { getallUsers } = useAdmin();
+  const [users, setUsers] = useState<IUserAdmin[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   // Mock data
-  const mockUsers: User[] = [
-    {
-      id: 1,
-      name: "Nguyễn Văn A",
-      email: "vana@example.com",
-      avatar: "/avatar1.jpg",
-      created_at: "2025-08-31",
-    },
-    {
-      id: 2,
-      name: "Trần Thị B",
-      email: "thib@example.com",
-      avatar: "/avatar2.jpg",
-      created_at: "2025-08-31",
-    },
-    {
-      id: 3,
-      name: "Lê Văn C",
-      email: "vanc@example.com",
-      avatar: "/avatar3.jpg",
-      created_at: "2025-08-30",
-    },
-  ];
+ 
 
-   useEffect(() => {
-    
-    setTimeout(() => {
-      setUsers(mockUsers);
-      setLoading(false);
-    }, 1000);
+  const fetchUsers = async () => {
+    setLoading(true);
+    const res = await getallUsers();
+    console.log(res);
+    setUsers(res as unknown as IUserAdmin[]);
+    setLoading(false);
+  }
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
   if (loading) {
@@ -85,7 +63,7 @@ export default function AdminUserPage() {
       {/* Users list */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-white">
-          Người dùng đã tạo tài khoản hôm nay
+          Tất cả người dùng
         </h2>
       </div>
       <div className="max-h-96 overflow-y-auto space-y-4 p-4 bg-white shadow-lg rounded-xl border border-gray-200">
@@ -98,20 +76,18 @@ export default function AdminUserPage() {
               {/* Avatar */}
               <img
                 src={user.avatar}
-                alt={user.name}
+                alt={user.username}
                 className="w-14 h-14 rounded-full object-cover border shadow-sm"
               />
 
               {/* Info */}
               <div className="flex-1">
-                <h1 className="font-semibold text-gray-800">{user.name}</h1>
+                <h1 className="font-semibold text-gray-800">{user.username}</h1>
                 <p className="text-sm text-gray-500">{user.email}</p>
               </div>
 
               {/* Date */}
-              <div className="text-right">
-                <p className="text-xs text-gray-400">{user.created_at}</p>
-              </div>
+             
             </div>
           ))}
       </div>

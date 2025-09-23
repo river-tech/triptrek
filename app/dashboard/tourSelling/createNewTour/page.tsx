@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect  } from "react";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -14,20 +14,15 @@ import {
   faPlus,
   faTimes,
   faSpinner,
+  faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import BackButton from "@/app/common/BackButton";
 import { useRouter } from "next/navigation";
 import useBooking from "@/hooks/useBooking";
 import { ITourFormData } from "@/model/tour";
+import useData from "@/hooks/useData";
 
-const mockDestinations = [
-  { id: 1, name: "Đà Nẵng, Việt Nam" },
-  { id: 2, name: "Hội An, Quảng Nam" },
-  { id: 3, name: "Đà Lạt, Lâm Đồng" },
-  { id: 4, name: "Phú Quốc, Kiên Giang" },
-  { id: 5, name: "Hạ Long, Quảng Ninh" },
-  { id: 6, name: "Huế, Thừa Thiên Huế" },
-];
+
 
 const CreateNewTour = () => {
   const [formData, setFormData] = useState<ITourFormData>({
@@ -40,12 +35,23 @@ const CreateNewTour = () => {
     guideName: "",
     images: [],
   });
+  type destinationType = {
+    id: number;
+    name: string;
+  };
+  const [destinationList, setDestinationList] = useState<destinationType[]>([]);
   const { createTour } = useBooking();
-
+  const { getAllDestinations } = useData();
+  useEffect(() => {
+    const fetchDestinations = async () => {
+      const res: destinationType[] = await getAllDestinations();
+      setDestinationList(res || []);
+    }
+    fetchDestinations();
+  }, []);
   const [imagePreview, setImagePreview] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState("");
-  // loadingImages: boolean[] - true nếu ảnh đang upload ở vị trí đó
   const [loadingImages, setLoadingImages] = useState<boolean[]>([
     false,
     false,
@@ -204,7 +210,10 @@ const CreateNewTour = () => {
     <div className="min-h-screen bg-gray-50 py-10">
       <div className="max-w-4xl mx-auto px-6">
         {/* Header */}
-        <BackButton />
+        <button onClick={() =>  router.push("/")} className='fixed cursor-pointer z-10 hover:bg-white/80 backdrop-blur-sm rounded-full p-2 hover:text-sky-500 flex px-2 bg-sky-500 text-white transition-all duration-300 items-center gap-2 top-10 left-10'>
+    <FontAwesomeIcon icon={faArrowLeft} className='w-6 h-6' />
+   
+  </button> 
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Tạo tour mới</h1>
           <p className="text-gray-600 mt-1">
@@ -251,7 +260,7 @@ const CreateNewTour = () => {
                   className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-sky-500`}
                 >
                   <option value="">Chọn điểm đến</option>
-                  {mockDestinations.map((dest) => (
+                  {destinationList.map((dest) => (
                     <option key={dest.id} value={dest.id}>
                       {dest.name}
                     </option>

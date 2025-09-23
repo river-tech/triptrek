@@ -10,50 +10,38 @@ import FamouTour from '@/app/common/FamousTour';
 import FamousDestination from '@/app/common/FamousDestination';
 import { CardItem } from '@/app/common/FamousTour';
 import BackButton from '@/app/common/BackButton';
+import useData from '@/hooks/useData';
+import { ITourPopular } from '@/model/tour';
+import { IFamousDestination } from '@/model/destination';
 
 
 
 
 const page = () => {
-  const [isSearching, setIsSearching] = useState(false);
-  const [result, setResult] = useState<any[]>([]);
-  const mockTours = [
-    {
-      id: 1,
-      name: 'Khám phá Đà Nẵng 5N4Đ – Biển & Ẩm thực',
-      price: 3590000,
-      destination: 'Đà Nẵng, Việt Nam',
-    },
-    {
-      id: 2,
-      name: 'Khám phá Hội An 3N2Đ – Phố đèn lồng',
-      price: 2490000,
-      destination: 'Hội An, Quảng Nam',
-    },
-    {
-      id: 3,
-      name: 'Khám phá Đà Lạt 4N3Đ – Săn mây',
-      price: 3190000,
-      destination: 'Đà Lạt, Lâm Đồng',
-    },
-    {
-      id: 4,
-      name: 'Khám phá Phú Quốc 4N3Đ – Săn mây',
-      price: 3190000,
-      destination: 'Phú Quốc, Kiên Giang',
-    },
-    {
-      id: 5,
-      name: 'Khám phá Đà Nẵng 5N4Đ – Biển & Ẩm thực',
-      price: 3590000,
-      destination: 'Đà Nẵng, Việt Nam',
-    },
-  ]
+  
+  const [result, setResult] = useState<ITourPopular[]>([]);
+  const [popularTours, setPopularTours] = useState<ITourPopular[]>([]);
+  const [popularDestinations, setPopularDestinations] = useState<IFamousDestination[]>([]);
+  const { getPopularTours, getPopularDestinations } = useData();
+
+  
+
   useEffect(() => {
-    setIsSearching(true)
-    setResult(mockTours)
-    setIsSearching(false)
+    const fetchData = async () => {
+     const tours = await getPopularTours();
+     console.log(tours)
+     const destinations = await getPopularDestinations();
+     setPopularDestinations(destinations || []);
+     setPopularTours(tours || []);
+    }
+    fetchData();
   }, [])
+
+  
+  const handleRenderResult = (tours: ITourPopular[]) => {
+    setResult(tours || []);
+  }
+  
 
   const chunkArray = <T,>(arr: T[], size: number): T[][] => {
     const chunks: T[][] = []
@@ -71,18 +59,14 @@ const page = () => {
       <div className="text-center mt-10">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">Tìm chuyến đi của bạn</h1>
         <p className="text-white mb-6">Chọn điểm đến, thời gian và mức giá phù hợp</p>
-        <TravelSearching />
+        <TravelSearching handleResult={handleRenderResult} />
       </div>
     </HeroSection>
       {
-        !isSearching && (
-          <section className="max-w-7xl mx-auto px-6 py-12">
-      <h2 className="text-[36px] sm:text-[42px] font-extrabold text-sky-500 mb-8">
-        Tour du lịch phù hợp 
-      </h2>
-
+        result.length > 0 && (
+          <section className="mx-auto px-6 py-12">
+      
       <div className="relative ">
-
         <Swiper
           modules={[Navigation, Pagination]}
           navigation={{ prevEl: '.fam-prev', nextEl: '.fam-next' }}
@@ -104,8 +88,8 @@ const page = () => {
     </section>
         )
       }
-    <FamousDestination />
-    <FamouTour />
+    <FamousDestination items={popularDestinations} />
+    <FamouTour items={popularTours} />
     </div>
   )
 }
