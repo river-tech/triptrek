@@ -236,7 +236,7 @@ export default function useProfile() {
         if(response.ok){
           return data;
         } else {
-          showError(data?.message);
+         
           return null;
         }
       } catch (error) {
@@ -296,7 +296,7 @@ export default function useProfile() {
 
     const deleteSellerOrder = async ({bookingIds}:{bookingIds:string[]}) => {
       try {
-        const response = await fetch(`${apiUrl}/bookings/seller`,{
+        const response = await fetch(`${apiUrl}/bookings/seller/deleted`,{
           method: "DELETE",
           headers: {
             "Authorization": `Bearer ${getToken()}`,

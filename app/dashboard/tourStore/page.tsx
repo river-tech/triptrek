@@ -70,7 +70,7 @@ const Page = () => {
 
   const bookings = useMemo(() => {
     if (tab === 'all') return myBookings
-    return myBookings.filter(b => b.status === tab)
+    return myBookings?.filter(b => b.status === tab)
   }, [tab, myBookings])
 
   const fetchBookings = async () => {
@@ -88,8 +88,10 @@ const Page = () => {
     await cancelBooking({id: deleteId.toString()})
     setDeleteId(0)
     setLoading(false)
+    fetchBookings()
     setShowDeleteModal(false)
   }
+  
   
 
   return (
@@ -124,69 +126,70 @@ const Page = () => {
 
         {/* List */}
         <div className="grid grid-cols-1 gap-4">
-          {bookings.map((b) => {
-            
-            return (
-              <div
-                key={b.id}
-                className={`relative group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-200 cursor-pointer`}
-                // onClick={() =>
-                  
-                // }
-              >
-                {/* Custom Checkbox */}
-                
-                <div className="flex flex-col md:flex-row">
-                  <div className="relative md:w-56 h-40 md:h-auto flex-shrink-0">
-                    <Image src={b?.images[0] || ''} alt={b?.name} fill className="object-cover" />
-                  </div>
-                  <div className="flex-1 p-5 pl-16 md:pl-5">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <h3 className="text-xl font-semibold text-gray-800">{b?.name}</h3>
-                      <span className={`px-3 py-1 rounded-full text-sm ${statusColor[b.status]}`}>{statusLabel[b.status]}</span>
-                      
+          {(!bookings || bookings.length === 0) ? (
+            <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+              <FontAwesomeIcon icon={faTicket} className="text-5xl text-gray-300 mb-4" />
+              <h2 className="text-xl font-semibold text-gray-700 mb-2">Bạn chưa có vé nào được đặt</h2>
+              <p className="text-gray-500">Hãy đặt tour để trải nghiệm những chuyến đi tuyệt vời!</p>
+            </div>
+          ) : (
+            bookings?.map((b) => {
+              return (
+                <div
+                  key={b.id}
+                  className={`relative group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-200 cursor-pointer`}
+                >
+                  {/* Custom Checkbox */}
+                  <div className="flex flex-col md:flex-row">
+                    <div className="relative md:w-56 h-40 md:h-auto flex-shrink-0">
+                      <Image src={b?.images[0] || ''} alt={b?.name} fill className="object-cover" />
                     </div>
+                    <div className="flex-1 p-5 pl-16 md:pl-5">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <h3 className="text-xl font-semibold text-gray-800">{b?.name}</h3>
+                        <span className={`px-3 py-1 rounded-full text-sm ${statusColor[b.status]}`}>{statusLabel[b.status]}</span>
+                      </div>
 
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm text-gray-700">
-                    <div className="flex items-center gap-2">
-                      <FontAwesomeIcon icon={faLocationDot} className="text-sky-500" />
-                      <span>{b?.destination}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FontAwesomeIcon icon={faClock} className="text-sky-500" />
-                      <span>{formatDate(b?.startDate)} → {formatDate(b?.endDate)}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FontAwesomeIcon icon={faTicket} className="text-sky-500" />
-                      <span>Giá: <strong className="text-gray-900">{currency(b?.price)}</strong></span>
-                    </div>
-                  </div>
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm text-gray-700">
+                        <div className="flex items-center gap-2">
+                          <FontAwesomeIcon icon={faLocationDot} className="text-sky-500" />
+                          <span>{b?.destination}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <FontAwesomeIcon icon={faClock} className="text-sky-500" />
+                          <span>{formatDate(b?.startDate)} → {formatDate(b?.endDate)}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <FontAwesomeIcon icon={faTicket} className="text-sky-500" />
+                          <span>Giá: <strong className="text-gray-900">{currency(b?.price)}</strong></span>
+                        </div>
+                      </div>
 
-                    <div className="mt-4 flex justify-between items-center gap-3 ">
-                      {b?.status === EBookingStatus.PENDING ? (
-                        <span className='inline-flex items-center gap-2 text-yellow-700 bg-yellow-50 px-3 py-2 rounded-lg'>
-                            <FontAwesomeIcon icon={faClock} /> Đang chờ xác nhận
-                        </span>
-                      ) : b?.status === EBookingStatus.SUCCESS ? (
-                        <span className="inline-flex items-center gap-2 text-green-700 bg-green-50 px-3 py-2 rounded-lg">
-                          <FontAwesomeIcon icon={faCircleCheck} /> Đã xác nhận
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-2 text-red-700 bg-red-50 px-3 py-2 rounded-lg">
-                          <FontAwesomeIcon icon={faXmark} /> Vé đã bị từ chối
-                        </span>
-                      )}
-                      <button className='flex items-center gap-2 cursor-pointer text-sky-500 px-4 py-2 rounded-lg' onClick={()=>{setShowDeleteModal(true); setDeleteId(b?.id)}}>
-                        <FontAwesomeIcon className='text-red-500 hover:text-red-600' icon={faTrash} />
-                        <span className='text-gray-700 hover:text-red-600'>Xóa</span>
-                      </button>
+                      <div className="mt-4 flex justify-between items-center gap-3 ">
+                        {b?.status === EBookingStatus.PENDING ? (
+                          <span className='inline-flex items-center gap-2 text-yellow-700 bg-yellow-50 px-3 py-2 rounded-lg'>
+                              <FontAwesomeIcon icon={faClock} /> Đang chờ xác nhận
+                          </span>
+                        ) : b?.status === EBookingStatus.SUCCESS ? (
+                          <span className="inline-flex items-center gap-2 text-green-700 bg-green-50 px-3 py-2 rounded-lg">
+                            <FontAwesomeIcon icon={faCircleCheck} /> Đã xác nhận
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-2 text-red-700 bg-red-50 px-3 py-2 rounded-lg">
+                            <FontAwesomeIcon icon={faXmark} /> Vé đã bị từ chối
+                          </span>
+                        )}
+                        <button className='flex items-center gap-2 cursor-pointer text-sky-500 px-4 py-2 rounded-lg' onClick={()=>{setShowDeleteModal(true); setDeleteId(b?.id)}}>
+                          <FontAwesomeIcon className='text-red-500 hover:text-red-600' icon={faTrash} />
+                          <span className='text-gray-700 hover:text-red-600'>Xóa</span>
+                        </button>
+                      </div>
                     </div>
-                    
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
       {showDeleteModal && 
